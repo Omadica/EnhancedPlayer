@@ -13,6 +13,7 @@ extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavcodec/bsf.h>
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     avformat_open_input(&ic, "rtsp://admin:Heisenberg@192.168.1.172", NULL, NULL);
     avformat_find_stream_info(ic, NULL);
     int iVideoStream = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+    av_read_play(ic);
 
     std::cout << iVideoStream << std::endl;
 
@@ -52,14 +54,41 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     double timeBase = av_q2d(rTimeBase);
     int nBitRate = ic->streams[iVideoStream]->codecpar->bit_rate;
 
+    AVBSFContext *bsfc = NULL;
+    const AVBitStreamFilter *bsf = av_bsf_get_by_name("hevc_mp4toannexb");
+    av_bsf_alloc(bsf, &bsfc);
+    avcodec_parameters_copy(bsfc->par_in, ic->streams[iVideoStream]->codecpar);
+    av_bsf_init(bsfc);
+
     int e = 0;
     AVPacket pkt;
+    AVPacket pktFiltered;
+    uint8_t ** ppVideo = nullptr;
+    int *pnVideoBytes = nullptr;
+    int64_t *pst = nullptr;
     while ((e = av_read_frame(ic, &pkt)) >= 0 && pkt.stream_index != iVideoStream) {
         av_packet_unref(&pkt);
     }
 
-//    for (const auto &ad : audio)
-//        ui->listWidget_audio->addItem(ad.description());
+    av_bsf_send_packet(bsfc, &pkt);
+    av_bsf_receive_packet(bsfc, &pktFiltered);
+
+
+    AVFrame *frame = nullptr;
+    // pktFiltered (is the packet)
+    const AVCodec *dec = avcodec_find_decoder(eVideoCodec);
+    AVCodecContext *ctx = avcodec_alloc_context3(dec);
+
+    avcodec_open2(ctx, dec, NULL);
+    avcodec_send_packet(ctx, &pktFiltered);
+    int ret = 0;
+    while(av_read_frame(ic,&pkt)>=0 ){
+        ret = avcodec_receive_frame(ctx, frame);
+        if (ret == 0 || ret == AVERROR(EAGAIN))
+            break;
+    }
+
+
 
 }
 
