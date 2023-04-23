@@ -3,6 +3,12 @@
 
 #include <QMainWindow>
 
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+}
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -15,7 +21,16 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void RtspConnection();
+
+
 private:
+    // pass the ref to rstp_connection
+    AVFormatContext* m_pFormatContext;
+    AVStream* m_pRtspStream;
+
+
     Ui::MainWindow *ui;
     void addcamera();
 };

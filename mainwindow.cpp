@@ -7,6 +7,7 @@
 #include "qaudiodevice.h"
 #include <iostream>
 #include <QString>
+#include <unordered_map>
 #include "FFmpegLog.h"
 
 extern "C"
@@ -16,13 +17,28 @@ extern "C"
 #include <libavcodec/bsf.h>
 }
 
+std::unordered_map<AVCodecID, QString> Supported_codec = {
+    {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
+    {AV_CODEC_ID_H264, QString("AV1(H264)")},
+};
+
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
 
+    /**
+     * @brief Catch the FFmpeg log and put them on std::out
+     */
     my_libav *av_log = new my_libav();
 
-
+    /**
+     * @brief Set-up the user interface
+     */
     ui->setupUi(this);
+
+    /**
+     * @brief Create QmediaDev and search for local cams
+     */
     QMediaDevices devs = new QMediaDevices();
     QList<QCameraDevice> cams = devs.videoInputs(); // video input has member "last"
     QList<QAudioDevice> audio = devs.audioInputs();
@@ -37,58 +53,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
     }
 
-    av_log_set_level(AV_LOG_INFO);
-    AVFormatContext* ic = nullptr;
-    avformat_open_input(&ic, "rtsp://admin:Heisenberg@192.168.1.172", NULL, NULL);
-    avformat_find_stream_info(ic, NULL);
-    int iVideoStream = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-    av_read_play(ic);
-
-    std::cout << iVideoStream << std::endl;
-
-    AVCodecID eVideoCodec = ic->streams[iVideoStream]->codecpar->codec_id;
-    int nWidth = ic->streams[iVideoStream]->codecpar->width;
-    int nHeight = ic->streams[iVideoStream]->codecpar->height;
-    enum AVPixelFormat eChromaFormat = (AVPixelFormat)ic->streams[iVideoStream]->codecpar->format;
-    AVRational rTimeBase = ic->streams[iVideoStream]->time_base;
-    double timeBase = av_q2d(rTimeBase);
-    int nBitRate = ic->streams[iVideoStream]->codecpar->bit_rate;
-
-    AVBSFContext *bsfc = NULL;
-    const AVBitStreamFilter *bsf = av_bsf_get_by_name("hevc_mp4toannexb");
-    av_bsf_alloc(bsf, &bsfc);
-    avcodec_parameters_copy(bsfc->par_in, ic->streams[iVideoStream]->codecpar);
-    av_bsf_init(bsfc);
-
-    int e = 0;
-    AVPacket pkt;
-    AVPacket pktFiltered;
-    uint8_t ** ppVideo = nullptr;
-    int *pnVideoBytes = nullptr;
-    int64_t *pst = nullptr;
-    while ((e = av_read_frame(ic, &pkt)) >= 0 && pkt.stream_index != iVideoStream) {
-        av_packet_unref(&pkt);
-    }
-
-    av_bsf_send_packet(bsfc, &pkt);
-    av_bsf_receive_packet(bsfc, &pktFiltered);
-
-
-    AVFrame *frame = nullptr;
-    // pktFiltered (is the packet)
-    const AVCodec *dec = avcodec_find_decoder(eVideoCodec);
-    AVCodecContext *ctx = avcodec_alloc_context3(dec);
-
-    avcodec_open2(ctx, dec, NULL);
-    avcodec_send_packet(ctx, &pktFiltered);
-    int ret = 0;
-    while(av_read_frame(ic,&pkt)>=0 ){
-        ret = avcodec_receive_frame(ctx, frame);
-        if (ret == 0 || ret == AVERROR(EAGAIN))
-            break;
-    }
-
-
+    /**
+     * @brief Rtsp connection, check if the URI is available
+     */
+    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
 
 }
 
@@ -96,3 +64,45 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::RtspConnection()
+{
+    int ret = 0;
+    m_pFormatContext = avformat_alloc_context();
+
+    QString ip_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text();
+    ret = avformat_open_input(&m_pFormatContext, "rtsp://admin:Heisenberg@192.168.1.172", NULL, NULL);
+
+    if (ret < 0)
+        qDebug() << "Error to create AvFormatContext";
+    else
+        ui->label_6->setText(QString("connected"));
+
+
+    ret = avformat_find_stream_info(m_pFormatContext, NULL);
+    if(ret < 0)
+        qDebug() << "Error to find stream";
+
+    int nVideoStream = -1;
+    int nAudioStream = -1;
+
+    for(int i=0; i< m_pFormatContext->nb_streams; i++)
+    {
+        m_pRtspStream = m_pFormatContext->streams[i];
+        if (m_pRtspStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
+            ui->label_10->setText(QString::number(m_pRtspStream->codecpar->width) + "X" + QString::number(m_pRtspStream->codecpar->height));
+            auto codec = Supported_codec.find(m_pRtspStream->codecpar->codec_id);
+            ui->label_11->setText(codec->second);
+            ui->label_12->setText(QString::number(m_pRtspStream->codecpar->format));
+            ui->label_14->setText(QString::number(m_pRtspStream->r_frame_rate.num) + "/" + QString::number(m_pRtspStream->r_frame_rate.den));
+
+            nVideoStream = i;
+        }
+        if (m_pRtspStream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+            nAudioStream = i;
+
+        if(nVideoStream == -1 || nAudioStream == -1)
+            qDebug() << "Warning: Video = " << nVideoStream << "  " << "Audio = " << nAudioStream;
+    }
+}
+
