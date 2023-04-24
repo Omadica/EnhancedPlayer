@@ -308,6 +308,19 @@
        <string>N/A</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="btnPlayback">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>310</y>
+        <width>83</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Playback</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

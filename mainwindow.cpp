@@ -9,6 +9,7 @@
 #include <QString>
 #include <unordered_map>
 #include "FFmpegLog.h"
+#include "FFmpegVideoDecoder.h"
 
 extern "C"
 {
@@ -58,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      */
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
 
+
 }
 
 MainWindow::~MainWindow()
@@ -71,7 +73,7 @@ void MainWindow::RtspConnection()
     m_pFormatContext = avformat_alloc_context();
 
     QString ip_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text();
-    ret = avformat_open_input(&m_pFormatContext, "rtsp://admin:Heisenberg@192.168.1.172", NULL, NULL);
+    ret = avformat_open_input(&m_pFormatContext, ip_addr.toStdString().c_str(), NULL, NULL);
 
     if (ret < 0)
         qDebug() << "Error to create AvFormatContext";
@@ -104,5 +106,11 @@ void MainWindow::RtspConnection()
         if(nVideoStream == -1 || nAudioStream == -1)
             qDebug() << "Warning: Video = " << nVideoStream << "  " << "Audio = " << nAudioStream;
     }
+
+    FFmpegVideoDecoder* decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream);
+    thread = new QThread();
+    decoder->moveToThread(thread);
+    connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
+    thread->start();
 }
 

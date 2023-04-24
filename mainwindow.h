@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QThread>
 
 extern "C"
 {
@@ -29,6 +30,9 @@ private:
     // pass the ref to rstp_connection
     AVFormatContext* m_pFormatContext;
     AVStream* m_pRtspStream;
+
+    QThread *thread;
+
 
 
     Ui::MainWindow *ui;

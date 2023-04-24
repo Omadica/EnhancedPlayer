@@ -29,8 +29,10 @@ set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         FFmpegLog.cpp
+        FFmpegVideoDecoder.cpp
         mainwindow.h
         FFmpegLog.h
+        FFmpegVideoDecoder.h
         mainwindow.ui
         ${TS_FILES}
 )
