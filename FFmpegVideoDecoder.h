@@ -2,6 +2,7 @@
 #define FFMPEGVIDEODECODER_H
 
 #include <QObject>
+#include <QImage>
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -35,6 +36,7 @@ private:
     AVPacket* m_pPkt;
     AVFrame* m_pFrame;
     AVFrame* m_pFrame_converted;
+    QImage* m_pLastFrame;
 };
 
 #endif // FFMPEGVIDEODECODER_H

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <QDebug>
 
 FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream)
     : QObject{parent}, m_pIc(ic), m_pStream(stream),
@@ -23,7 +24,7 @@ void FFmpegVideoDecoder::decode()
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
-    codec = avcodec_find_decoder(m_pStream->codecpar->codec_id);
+    codec = avcodec_find_decoder_by_name("hevc");//m_pStream->codecpar->codec_id);
     if(!codec)
         emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
 
@@ -40,8 +41,10 @@ void FFmpegVideoDecoder::decode()
 
     std::ofstream myfile;
     int cnt = 0;
-    //while(av_read_frame(m_pIc, m_pPkt) >= 0 && cnt < 1000)
-    while(true)
+
+
+
+    while(av_read_frame(m_pIc, m_pPkt) >= 0 && cnt < 1000)
     {
         if(m_pPkt->stream_index == AVMEDIA_TYPE_VIDEO)
         {
@@ -50,33 +53,70 @@ void FFmpegVideoDecoder::decode()
             m_pPkt->stream_index = m_pStream->id;
 
             ret = avcodec_send_packet(m_pCctx, m_pPkt);
+            char err_buf[1024];
+            av_strerror(ret , err_buf, 1024);
+            qDebug() << err_buf << "\n";
             if(ret < 0)
-                emit error(QString("FFmpegVideoDecoder: Error, cannot send packet"));
+                emit error(QString("FFmpegVideoDecoder: Error, cannot send packet") + QString::fromStdString(err_buf));
 
             while (ret >= 0) {
                 ret = avcodec_receive_frame(m_pCctx, m_pFrame);
-                if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+                if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
                     return;
+                }
+                if(ret == 0)
+                    break;
                 else if (ret < 0) {
                     emit error(QString("Error during decoding"));
+                    char err_buf[1024];
+                    av_strerror(ret , err_buf, 1024);
+                    qDebug() << err_buf << "\n";
                 }
             }
+            m_pImg_conversion = sws_getContext
+                (m_pCctx->width,
+                 m_pCctx->height,
 
-            sws_scale(m_pImg_conversion, m_pFrame->data, m_pFrame->linesize, 0, m_pCctx->height, m_pFrame_converted->data, m_pFrame_converted->linesize);
+                 (AVPixelFormat)m_pCctx->pix_fmt,
+
+                 m_pCctx->width,
+                 m_pCctx->height,
+                 AV_PIX_FMT_RGB24,
+                 SWS_SPLINE,
+                 NULL,
+                 NULL,
+                 NULL);
+
+            sws_scale(m_pImg_conversion,
+                      m_pFrame->data,
+                      m_pFrame->linesize,
+                      0,
+                      m_pCctx->height,
+                      m_pFrame_converted->data,
+                      m_pFrame_converted->linesize
+                    );
+
             std::stringstream name;
             name << "test" << cnt << ".ppm";
-            myfile.open(name.str());
-            myfile << "P3 " << m_pCctx->width << " " << m_pCctx->height << " 255\n";
-            for(int y = 0; y < m_pCctx->height; y++)
-            {
-                for(int x = 0; x < m_pCctx->width * 3; x++)
-                    myfile << (int)(m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0])[x] << " ";
-            }
-            myfile.close();
+            // emit frameDecoded
+            // Convert the frame to QImage
+            m_pLastFrame = new QImage(m_pCctx->width, m_pCctx->height, QImage::Format_RGB888);
+
+            for(int y=0; y < m_pCctx->height; y++)
+                memcpy(m_pLastFrame->scanLine(y),m_pFrame_converted->data[0]+y*m_pFrame_converted->linesize[0],m_pCctx->width*3);
+
+            // Set the time
+            //DesiredFrameTime = ffmpeg::av_rescale_q(after,pFormatCtx->streams[videoStream]->time_base,millisecondbase);
+            //LastFrameOk=true;
+
+
+            //done = true;
+
         }
         av_packet_unref(m_pPkt);
         av_frame_unref(m_pFrame);
         av_frame_unref(m_pFrame_converted);
         cnt++;
+        qDebug() << "Frame number: " << cnt << "\n";
     }
 }

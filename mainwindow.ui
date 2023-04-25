@@ -323,6 +323,16 @@
      </widget>
     </widget>
    </widget>
+   <widget class="QOpenGLWidget" name="mainCell">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>30</y>
+      <width>701</width>
+      <height>511</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
