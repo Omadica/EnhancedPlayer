@@ -24,7 +24,7 @@ void FFmpegVideoDecoder::decode()
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
-    codec = avcodec_find_decoder_by_name("hevc");//m_pStream->codecpar->codec_id);
+    codec = avcodec_find_decoder(m_pStream->codecpar->codec_id);
     if(!codec)
         emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
 
@@ -48,6 +48,7 @@ void FFmpegVideoDecoder::decode()
     {
         if(m_pPkt->stream_index == AVMEDIA_TYPE_VIDEO)
         {
+            qDebug() << "Video-Frame number: " << cnt << "\n";
 
             int check = 0;
             m_pPkt->stream_index = m_pStream->id;
@@ -102,8 +103,8 @@ void FFmpegVideoDecoder::decode()
             // Convert the frame to QImage
             m_pLastFrame = new QImage(m_pCctx->width, m_pCctx->height, QImage::Format_RGB888);
 
-            for(int y=0; y < m_pCctx->height; y++)
-                memcpy(m_pLastFrame->scanLine(y),m_pFrame_converted->data[0]+y*m_pFrame_converted->linesize[0],m_pCctx->width*3);
+//            for(int y=0; y < m_pCctx->height; y++)
+//                memcpy(m_pLastFrame->scanLine(y),m_pFrame_converted->data[0]+y*m_pFrame_converted->linesize[0],m_pCctx->width*3);
 
             // Set the time
             //DesiredFrameTime = ffmpeg::av_rescale_q(after,pFormatCtx->streams[videoStream]->time_base,millisecondbase);
@@ -111,12 +112,13 @@ void FFmpegVideoDecoder::decode()
 
 
             //done = true;
+            cnt++;
 
         }
         av_packet_unref(m_pPkt);
         av_frame_unref(m_pFrame);
         av_frame_unref(m_pFrame_converted);
-        cnt++;
-        qDebug() << "Frame number: " << cnt << "\n";
+
+
     }
 }

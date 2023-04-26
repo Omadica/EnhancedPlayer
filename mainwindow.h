@@ -24,6 +24,7 @@ public:
 
 private slots:
     void RtspConnection();
+    void StartPlayback();
 
 
 private:
@@ -32,6 +33,7 @@ private:
     AVStream* m_pRtspStream;
 
     QThread *thread;
+    QImage m_FrameImage;
 
 
 

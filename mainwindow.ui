@@ -243,7 +243,7 @@
        <string notr="true">lineedit-password-character: 9679</string>
       </property>
       <property name="text">
-       <string>Heisenberg</string>
+       <string>admin</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="textUser">
@@ -269,10 +269,10 @@
        </rect>
       </property>
       <property name="text">
-       <string>192.168.1.172</string>
+       <string>10.31.7.126</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="t">
+     <widget class="QLineEdit" name="textOptions">
       <property name="geometry">
        <rect>
         <x>80</x>
@@ -280,6 +280,9 @@
         <width>113</width>
         <height>23</height>
        </rect>
+      </property>
+      <property name="text">
+       <string>/stream1</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_13">
@@ -323,16 +326,6 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QOpenGLWidget" name="mainCell">
-    <property name="geometry">
-     <rect>
-      <x>290</x>
-      <y>30</y>
-      <width>701</width>
-      <height>511</height>
-     </rect>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -340,7 +333,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

@@ -9,7 +9,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
+
+
+list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.5.0/msvc2019_64/lib/cmake")
+set(ENV{PKG_CONFIG_PATH} "C:/Users/smandelli/Source/Repos/EXERCISES/NewSdkNative/cmake/pkgconfig")
+
+
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 
 find_package(PkgConfig REQUIRED)
@@ -77,6 +83,13 @@ set_target_properties(EnhancedPlayer PROPERTIES
 install(TARGETS EnhancedPlayer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(CODE [[
+  file(GET_RUNTIME_DEPENDENCIES
+    PRE_INCLUDE_REGEXES "^[Mm][Yy][Ll][Ii][Bb][Rr][Aa][Rr][Yy]\\.[Dd][Ll][Ll]$"
+    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedi
+    )
+  ]])
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(EnhancedPlayer)

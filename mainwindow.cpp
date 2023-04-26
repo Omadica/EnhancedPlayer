@@ -26,7 +26,7 @@ std::unordered_map<AVCodecID, QString> Supported_codec = {
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-
+    thread = new QThread();
     /**
      * @brief Catch the FFmpeg log and put them on std::out
      */
@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      * @brief Rtsp connection, check if the URI is available
      */
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
+    connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()) );
 
 
 }
@@ -72,7 +73,7 @@ void MainWindow::RtspConnection()
     int ret = 0;
     m_pFormatContext = avformat_alloc_context();
 
-    QString ip_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text();
+    QString ip_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text() + ui->textOptions->text();
     ret = avformat_open_input(&m_pFormatContext, ip_addr.toStdString().c_str(), NULL, NULL);
 
     if (ret < 0)
@@ -107,10 +108,15 @@ void MainWindow::RtspConnection()
             qDebug() << "Warning: Video = " << nVideoStream << "  " << "Audio = " << nAudioStream;
     }
 
+}
+
+void MainWindow::StartPlayback()
+{
+    qDebug() << "TEEEEEEEEEEEEEEEESSSSSSSSSSSSSSSSTTTTTTTTTTTT";
     FFmpegVideoDecoder* decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream);
-    thread = new QThread();
     decoder->moveToThread(thread);
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     thread->start();
+
 }
 

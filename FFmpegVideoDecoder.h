@@ -23,6 +23,7 @@ public slots:
 
 signals:
     void finished();
+
     void error(QString error);
 
 private:
