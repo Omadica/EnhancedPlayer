@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include "FFmpegVideoDecoder.h"
 
 extern "C"
 {
@@ -25,6 +26,10 @@ public:
 private slots:
     void RtspConnection();
     void StartPlayback();
+    void DrawGraph(QImage img);
+
+signals:
+    void readyForFrame();
 
 
 private:
@@ -34,6 +39,8 @@ private:
 
     QThread *thread;
     QImage m_FrameImage;
+
+    FFmpegVideoDecoder* decoder;
 
 
 

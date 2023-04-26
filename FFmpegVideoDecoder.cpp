@@ -4,6 +4,41 @@
 #include <sstream>
 #include <string>
 #include <QDebug>
+#include <QLabel>
+
+static void ppm_save(char* filename, AVFrame* frame)
+{
+    FILE* file;
+    int i;
+
+    file = fopen64(filename, "wb");
+    frame->data[0];
+    fprintf(file, "P6\n%d %d\n%d\n", frame->width, frame->height, 255);
+    for (i = 0; i < frame->height; i++)
+        fwrite(frame->data[0] + i * frame->linesize[0], 1, frame->width * 3, file);
+    fclose(file);
+}
+
+
+AVPixelFormat ConvertFormats(AVFrame* frame)
+{
+    switch (frame->format) {
+    case AV_PIX_FMT_YUVJ420P:
+        return AV_PIX_FMT_YUV420P;
+        break;
+    case AV_PIX_FMT_YUVJ422P:
+        return AV_PIX_FMT_YUV422P;
+        break;
+    case AV_PIX_FMT_YUVJ444P:
+        return AV_PIX_FMT_YUV444P;
+        break;
+    case AV_PIX_FMT_YUVJ440P:
+        return AV_PIX_FMT_YUV440P;
+    default:
+        return static_cast<AVPixelFormat>(frame->format);
+        break;
+    }
+}
 
 FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream)
     : QObject{parent}, m_pIc(ic), m_pStream(stream),
@@ -24,7 +59,7 @@ void FFmpegVideoDecoder::decode()
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
-    codec = avcodec_find_decoder(m_pStream->codecpar->codec_id);
+    codec = avcodec_find_decoder_by_name("hevc");//(m_pStream->codecpar->codec_id);
     if(!codec)
         emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
 
@@ -37,24 +72,27 @@ void FFmpegVideoDecoder::decode()
         emit error(QString("FFmpegVideoDecoder: Error, cannot open codec"));
 
     m_pFrame = av_frame_alloc();
+    m_pFrame_converted = av_frame_alloc();
+    m_pFrame_converted->format = AV_PIX_FMT_RGB24;
+    m_pFrame_converted->color_range = AVCOL_RANGE_JPEG;
+    m_pFrame_converted->width =  m_pStream->codecpar->width;
+    m_pFrame_converted->height = m_pStream->codecpar->height;
+    av_frame_get_buffer(m_pFrame_converted, 0);
     m_pPkt   = av_packet_alloc();
 
     std::ofstream myfile;
-    int cnt = 0;
 
-
-
-    while(av_read_frame(m_pIc, m_pPkt) >= 0 && cnt < 1000)
+    char buf[1024];
+    char err_buf[1024];
+    while(av_read_frame(m_pIc, m_pPkt) >= 0)
     {
         if(m_pPkt->stream_index == AVMEDIA_TYPE_VIDEO)
         {
-            qDebug() << "Video-Frame number: " << cnt << "\n";
-
             int check = 0;
             m_pPkt->stream_index = m_pStream->id;
 
             ret = avcodec_send_packet(m_pCctx, m_pPkt);
-            char err_buf[1024];
+
             av_strerror(ret , err_buf, 1024);
             qDebug() << err_buf << "\n";
             if(ret < 0)
@@ -74,14 +112,14 @@ void FFmpegVideoDecoder::decode()
                     qDebug() << err_buf << "\n";
                 }
             }
+
+            m_pFrame->color_range = (AVColorRange)1;
             m_pImg_conversion = sws_getContext
-                (m_pCctx->width,
-                 m_pCctx->height,
-
-                 (AVPixelFormat)m_pCctx->pix_fmt,
-
-                 m_pCctx->width,
-                 m_pCctx->height,
+                (m_pFrame->width,
+                 m_pFrame->height,
+                 AV_PIX_FMT_YUVJ420P,
+                 m_pFrame->width,
+                 m_pFrame->height,
                  AV_PIX_FMT_RGB24,
                  SWS_SPLINE,
                  NULL,
@@ -96,29 +134,20 @@ void FFmpegVideoDecoder::decode()
                       m_pFrame_converted->data,
                       m_pFrame_converted->linesize
                     );
+            m_pLastFrame = QImage(m_pFrame_converted->width, m_pFrame_converted->height, QImage::Format_RGB888);
+            for(int y=0; y < m_pFrame_converted->height; y++)
+                memcpy(
+                    m_pLastFrame.scanLine(y),
+                    m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
+                    m_pFrame_converted->width*3
+                );
 
-            std::stringstream name;
-            name << "test" << cnt << ".ppm";
-            // emit frameDecoded
-            // Convert the frame to QImage
-            m_pLastFrame = new QImage(m_pCctx->width, m_pCctx->height, QImage::Format_RGB888);
+            emit ReturnFrame(m_pLastFrame);
 
-//            for(int y=0; y < m_pCctx->height; y++)
-//                memcpy(m_pLastFrame->scanLine(y),m_pFrame_converted->data[0]+y*m_pFrame_converted->linesize[0],m_pCctx->width*3);
-
-            // Set the time
-            //DesiredFrameTime = ffmpeg::av_rescale_q(after,pFormatCtx->streams[videoStream]->time_base,millisecondbase);
-            //LastFrameOk=true;
-
-
-            //done = true;
-            cnt++;
 
         }
         av_packet_unref(m_pPkt);
         av_frame_unref(m_pFrame);
         av_frame_unref(m_pFrame_converted);
-
-
     }
 }

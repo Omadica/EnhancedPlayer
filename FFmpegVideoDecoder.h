@@ -23,7 +23,7 @@ public slots:
 
 signals:
     void finished();
-
+    void ReturnFrame(QImage img);
     void error(QString error);
 
 private:
@@ -37,7 +37,7 @@ private:
     AVPacket* m_pPkt;
     AVFrame* m_pFrame;
     AVFrame* m_pFrame_converted;
-    QImage* m_pLastFrame;
+    QImage m_pLastFrame;
 };
 
 #endif // FFMPEGVIDEODECODER_H

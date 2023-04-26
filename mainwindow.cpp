@@ -2,6 +2,8 @@
 #include <QMediaCaptureSession>
 #include <QCameraDevice>
 #include <QListView>
+#include <QPainter>
+#include <QPixmap>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "qaudiodevice.h"
@@ -9,7 +11,6 @@
 #include <QString>
 #include <unordered_map>
 #include "FFmpegLog.h"
-#include "FFmpegVideoDecoder.h"
 
 extern "C"
 {
@@ -54,11 +55,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
     }
 
+
+
     /**
      * @brief Rtsp connection, check if the URI is available
      */
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
-    connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()) );
+    connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
+
 
 
 }
@@ -66,6 +70,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::DrawGraph(QImage img)
+{
+
+    ui->label_15->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio)));
+
 }
 
 void MainWindow::RtspConnection()
@@ -112,11 +123,10 @@ void MainWindow::RtspConnection()
 
 void MainWindow::StartPlayback()
 {
-    qDebug() << "TEEEEEEEEEEEEEEEESSSSSSSSSSSSSSSSTTTTTTTTTTTT";
-    FFmpegVideoDecoder* decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream);
+    decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream);
     decoder->moveToThread(thread);
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
+    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
     thread->start();
-
 }
 
