@@ -22,6 +22,7 @@ extern "C"
 std::unordered_map<AVCodecID, QString> Supported_codec = {
     {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
     {AV_CODEC_ID_H264, QString("AV1(H264)")},
+    {AV_CODEC_ID_MJPEG, QString("MJPEG")},
 };
 
 
@@ -74,9 +75,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::DrawGraph(QImage img)
 {
-
     ui->label_15->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio)));
-
 }
 
 void MainWindow::RtspConnection()
@@ -128,5 +127,6 @@ void MainWindow::StartPlayback()
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
     thread->start();
+
 }
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1083</width>
-    <height>662</height>
+    <width>1192</width>
+    <height>672</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -282,7 +282,7 @@
        </rect>
       </property>
       <property name="text">
-       <string/>
+       <string>/Streaming/Channels/101</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_13">
@@ -331,8 +331,8 @@
      <rect>
       <x>290</x>
       <y>30</y>
-      <width>771</width>
-      <height>511</height>
+      <width>881</width>
+      <height>521</height>
      </rect>
     </property>
     <property name="text">
@@ -345,7 +345,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1083</width>
+     <width>1192</width>
      <height>21</height>
     </rect>
    </property>

@@ -59,7 +59,7 @@ void FFmpegVideoDecoder::decode()
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
-    codec = avcodec_find_decoder_by_name("hevc");//(m_pStream->codecpar->codec_id);
+    codec = avcodec_find_decoder(m_pStream->codecpar->codec_id);
     if(!codec)
         emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
 
@@ -79,8 +79,20 @@ void FFmpegVideoDecoder::decode()
     m_pFrame_converted->height = m_pStream->codecpar->height;
     av_frame_get_buffer(m_pFrame_converted, 0);
     m_pPkt   = av_packet_alloc();
+    m_pLastFrame = QImage(m_pFrame_converted->width, m_pFrame_converted->height, QImage::Format_RGB888);
 
-    std::ofstream myfile;
+    m_pImg_conversion = sws_getContext
+        (m_pFrame_converted->width,
+         m_pFrame_converted->height,
+         AV_PIX_FMT_YUVJ420P,
+         m_pFrame_converted->width,
+         m_pFrame_converted->height,
+         AV_PIX_FMT_RGB24,
+         SWS_SPLINE,
+         NULL,
+         NULL,
+         NULL);
+
 
     char buf[1024];
     char err_buf[1024];
@@ -103,8 +115,26 @@ void FFmpegVideoDecoder::decode()
                 if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
                     return;
                 }
-                if(ret == 0)
+                if(ret == 0){
+                    m_pFrame->color_range = (AVColorRange)1;
+                    sws_scale(m_pImg_conversion,
+                              m_pFrame->data,
+                              m_pFrame->linesize,
+                              0,
+                              m_pCctx->height,
+                              m_pFrame_converted->data,
+                              m_pFrame_converted->linesize
+                              );
+
+                    for(int y=0; y < m_pFrame_converted->height; y++)
+                        memcpy(
+                            m_pLastFrame.scanLine(y),
+                            m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
+                            m_pFrame_converted->width*3
+                            );
+                    emit ReturnFrame(m_pLastFrame);
                     break;
+                }
                 else if (ret < 0) {
                     emit error(QString("Error during decoding"));
                     char err_buf[1024];
@@ -112,42 +142,8 @@ void FFmpegVideoDecoder::decode()
                     qDebug() << err_buf << "\n";
                 }
             }
-
-            m_pFrame->color_range = (AVColorRange)1;
-            m_pImg_conversion = sws_getContext
-                (m_pFrame->width,
-                 m_pFrame->height,
-                 AV_PIX_FMT_YUVJ420P,
-                 m_pFrame->width,
-                 m_pFrame->height,
-                 AV_PIX_FMT_RGB24,
-                 SWS_SPLINE,
-                 NULL,
-                 NULL,
-                 NULL);
-
-            sws_scale(m_pImg_conversion,
-                      m_pFrame->data,
-                      m_pFrame->linesize,
-                      0,
-                      m_pCctx->height,
-                      m_pFrame_converted->data,
-                      m_pFrame_converted->linesize
-                    );
-            m_pLastFrame = QImage(m_pFrame_converted->width, m_pFrame_converted->height, QImage::Format_RGB888);
-            for(int y=0; y < m_pFrame_converted->height; y++)
-                memcpy(
-                    m_pLastFrame.scanLine(y),
-                    m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
-                    m_pFrame_converted->width*3
-                );
-
-            emit ReturnFrame(m_pLastFrame);
-
-
         }
         av_packet_unref(m_pPkt);
         av_frame_unref(m_pFrame);
-        av_frame_unref(m_pFrame_converted);
     }
 }
