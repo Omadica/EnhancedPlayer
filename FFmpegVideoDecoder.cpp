@@ -6,18 +6,25 @@
 #include <QDebug>
 #include <QLabel>
 
-static void ppm_save(char* filename, AVFrame* frame)
-{
-    FILE* file;
-    int i;
 
-    file = fopen64(filename, "wb");
-    frame->data[0];
-    fprintf(file, "P6\n%d %d\n%d\n", frame->width, frame->height, 255);
-    for (i = 0; i < frame->height; i++)
-        fwrite(frame->data[0] + i * frame->linesize[0], 1, frame->width * 3, file);
-    fclose(file);
+extern "C"
+{
+#include <libavutil/imgutils.h>
 }
+
+
+//static void ppm_save(char* filename, AVFrame* frame)
+//{
+//    FILE* file;
+//    int i;
+
+//    file = fopen64(filename, "wb");
+//    frame->data[0];
+//    fprintf(file, "P6\n%d %d\n%d\n", frame->width, frame->height, 255);
+//    for (i = 0; i < frame->height; i++)
+//        fwrite(frame->data[0] + i * frame->linesize[0], 1, frame->width * 3, file);
+//    fclose(file);
+//}
 
 
 AVPixelFormat ConvertFormats(AVFrame* frame)
@@ -40,43 +47,122 @@ AVPixelFormat ConvertFormats(AVFrame* frame)
     }
 }
 
-FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream)
-    : QObject{parent}, m_pIc(ic), m_pStream(stream),
+FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel)
+    : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel),
     m_pCctx(nullptr),
     codec(nullptr),
     m_pImg_conversion(nullptr),
+    m_pHWconversion(nullptr),
     m_pPkt(nullptr),
     m_pFrame(nullptr),
-    m_pFrame_converted(nullptr)
+    m_pFrame_converted(nullptr),
+    m_pSWFrame(nullptr),
+    m_pOutFrame(nullptr)
 {
 
 }
 
+static AVBufferRef *hw_device_ctx = NULL;
+static enum AVPixelFormat hw_pix_fmt;
+
+static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+
+    for (p = pix_fmts; *p != -1; p++) {
+        if (*p == hw_pix_fmt)
+            return *p;
+    }
+
+    fprintf(stderr, "Failed to get HW surface format.\n");
+    return AV_PIX_FMT_NONE;
+}
+
+
 void FFmpegVideoDecoder::decode()
 {
     int ret = 0;
+    int video_stream = 0;
     ret = av_read_play(m_pIc);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
-    codec = avcodec_find_decoder(m_pStream->codecpar->codec_id);
-    if(!codec)
-        emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
+    if(bool_hw_accel)
+    {
+        type = av_hwdevice_find_type_by_name("dxva2");
+        if (type == AV_HWDEVICE_TYPE_NONE) {
+            fprintf(stderr, "Device type %s is not supported.\n", "dxva2");
+            fprintf(stderr, "Available device types:");
+            while((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+                fprintf(stderr, " %s", av_hwdevice_get_type_name(type));
+            fprintf(stderr, "\n");
+            return;
+        }
+        ret = av_find_best_stream(m_pIc, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
+        video_stream = ret;
+    }
+    else
+    {
+        codec = avcodec_find_decoder(m_pIc->streams[0]->codecpar->codec_id);
+        if(!codec)
+            emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
+        else
+            emit infoDec(QString(codec->name));
+    }
+
+    if(bool_hw_accel){
+        for (int i = 0;; i++) {
+            const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
+            if (!config) {
+                fprintf(stderr, "Decoder %s does not support device type %s.\n",
+                        codec->name, av_hwdevice_get_type_name(type));
+                return;
+            }
+            if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX &&
+                config->device_type == type) {
+                hw_pix_fmt = config->pix_fmt;
+                break;
+            }
+        }
+    }
+
 
     m_pCctx = avcodec_alloc_context3(codec);
     if(!m_pCctx)
         emit error(QString("FFmpegVideoDecoder: Error, cannot allocate codec context"));
 
+
+    if(bool_hw_accel){
+        m_pCctx->get_format = get_hw_format;
+        if (av_hwdevice_ctx_create(&hw_device_ctx, type, NULL, NULL, 0) < 0)
+        {
+            fprintf(stderr, "Failed to create specified HW device.\n");
+            return;
+        }
+        m_pCctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+    }
+
     ret = avcodec_open2(m_pCctx, codec, nullptr);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot open codec"));
 
+
+
+
+
     m_pFrame = av_frame_alloc();
+
+    if(bool_hw_accel)
+        m_pSWFrame = av_frame_alloc();
+
+    m_pOutFrame = av_frame_alloc();
+
     m_pFrame_converted = av_frame_alloc();
     m_pFrame_converted->format = AV_PIX_FMT_RGB24;
     m_pFrame_converted->color_range = AVCOL_RANGE_JPEG;
-    m_pFrame_converted->width =  m_pStream->codecpar->width;
-    m_pFrame_converted->height = m_pStream->codecpar->height;
+    m_pFrame_converted->width =  m_pIc->streams[0]->codecpar->width;
+    m_pFrame_converted->height = m_pIc->streams[0]->codecpar->height;
     av_frame_get_buffer(m_pFrame_converted, 0);
     m_pPkt   = av_packet_alloc();
     m_pLastFrame = QImage(m_pFrame_converted->width, m_pFrame_converted->height, QImage::Format_RGB888);
@@ -84,7 +170,7 @@ void FFmpegVideoDecoder::decode()
     m_pImg_conversion = sws_getContext
         (m_pFrame_converted->width,
          m_pFrame_converted->height,
-         AV_PIX_FMT_YUVJ420P,
+         AV_PIX_FMT_YUV420P,
          m_pFrame_converted->width,
          m_pFrame_converted->height,
          AV_PIX_FMT_RGB24,
@@ -93,14 +179,25 @@ void FFmpegVideoDecoder::decode()
          NULL,
          NULL);
 
+    if(bool_hw_accel){
+        m_pHWconversion = sws_getContext
+            (m_pFrame_converted->width,
+             m_pFrame_converted->height,
+             (AVPixelFormat)hw_pix_fmt,
+             m_pFrame_converted->width,
+             m_pFrame_converted->height,
+             AV_PIX_FMT_YUV420P,
+             SWS_SPLINE,
+             NULL,
+             NULL,
+             NULL);
+    }
 
-    char buf[1024];
     char err_buf[1024];
     while(av_read_frame(m_pIc, m_pPkt) >= 0)
     {
         if(m_pPkt->stream_index == AVMEDIA_TYPE_VIDEO)
         {
-            int check = 0;
             m_pPkt->stream_index = m_pStream->id;
 
             ret = avcodec_send_packet(m_pCctx, m_pPkt);
@@ -116,21 +213,45 @@ void FFmpegVideoDecoder::decode()
                     return;
                 }
                 if(ret == 0){
-                    m_pFrame->color_range = (AVColorRange)1;
+                    if(bool_hw_accel || m_pFrame->format == hw_pix_fmt)
+                    {
+                        ret = av_hwframe_transfer_data(m_pSWFrame, m_pFrame, 0);
+                        if(ret<0)
+                            fprintf(stderr, "Error transferring the data to system memory\n");
+                    }
+
+                    if(bool_hw_accel)
+                    {
+//                        sws_scale(m_pHWconversion,
+//                                  m_pSWFrame->data,
+//                                  m_pSWFrame->linesize,
+//                                  0,
+//                                  m_pSWFrame->height,
+//                                  m_pOutFrame->data,
+//                                  m_pOutFrame->linesize
+//                                  );
+                    }
                     sws_scale(m_pImg_conversion,
-                              m_pFrame->data,
-                              m_pFrame->linesize,
+                              m_pOutFrame->data,
+                              m_pOutFrame->linesize,
                               0,
-                              m_pCctx->height,
+                              m_pOutFrame->height,
                               m_pFrame_converted->data,
                               m_pFrame_converted->linesize
                               );
 
-                    for(int y=0; y < m_pFrame_converted->height; y++)
+
+//                    for(int y=0; y < m_pFrame_converted->height; y++)
+//                        memcpy(
+//                            m_pLastFrame.scanLine(y),
+//                            m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
+//                            m_pFrame_converted->width*3
+//                            );
+                    for(int y=0; y < m_pSWFrame->height; y++)
                         memcpy(
                             m_pLastFrame.scanLine(y),
-                            m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
-                            m_pFrame_converted->width*3
+                            m_pSWFrame->data[0] + y * m_pSWFrame->linesize[0],
+                            m_pSWFrame->width*3
                             );
                     emit ReturnFrame(m_pLastFrame);
                     break;
@@ -145,5 +266,8 @@ void FFmpegVideoDecoder::decode()
         }
         av_packet_unref(m_pPkt);
         av_frame_unref(m_pFrame);
+        if(m_pSWFrame)
+            av_frame_unref(m_pSWFrame);
+        av_frame_unref(m_pOutFrame);
     }
 }

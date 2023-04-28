@@ -165,7 +165,7 @@
      <widget class="QLabel" name="label_8">
       <property name="geometry">
        <rect>
-        <x>70</x>
+        <x>60</x>
         <y>230</y>
         <width>91</width>
         <height>16</height>
@@ -243,7 +243,7 @@
        <string notr="true">lineedit-password-character: 9679</string>
       </property>
       <property name="text">
-       <string>Heisenberg</string>
+       <string>admin</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="textUser">
@@ -269,7 +269,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>192.168.1.172</string>
+       <string>10.31.7.126</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="textOptions">
@@ -282,13 +282,13 @@
        </rect>
       </property>
       <property name="text">
-       <string>/Streaming/Channels/101</string>
+       <string>/stream1</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_13">
       <property name="geometry">
        <rect>
-        <x>85</x>
+        <x>79</x>
         <y>270</y>
         <width>31</width>
         <height>16</height>
@@ -324,6 +324,58 @@
        <string>Playback</string>
       </property>
      </widget>
+     <widget class="QLabel" name="label_16">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>350</y>
+        <width>61</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Decoder:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_17">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>350</y>
+        <width>61</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_18">
+      <property name="geometry">
+       <rect>
+        <x>44</x>
+        <y>189</y>
+        <width>61</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>HW Accel:</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>190</y>
+        <width>76</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QLabel" name="label_15">
@@ -346,7 +398,7 @@
      <x>0</x>
      <y>0</y>
      <width>1192</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

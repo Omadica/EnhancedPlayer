@@ -27,6 +27,7 @@ private slots:
     void RtspConnection();
     void StartPlayback();
     void DrawGraph(QImage img);
+    void PrintDecoderInfo(QString dec);
 
 signals:
     void readyForFrame();

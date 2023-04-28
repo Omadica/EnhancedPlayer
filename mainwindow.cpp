@@ -78,6 +78,11 @@ void MainWindow::DrawGraph(QImage img)
     ui->label_15->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio)));
 }
 
+void MainWindow::PrintDecoderInfo(QString dec)
+{
+    ui->label_17->setText(dec);
+}
+
 void MainWindow::RtspConnection()
 {
     int ret = 0;
@@ -122,10 +127,12 @@ void MainWindow::RtspConnection()
 
 void MainWindow::StartPlayback()
 {
-    decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream);
+    bool dxva2_hw = ui->checkBox->isChecked();
+    decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw);
     decoder->moveToThread(thread);
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
+    connect(decoder, SIGNAL(infoDec(QString)), this, SLOT(PrintDecoderInfo(QString)));
     thread->start();
 
 }
