@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include <cstring>
 class Environment;
 
 std::string format_here(std::pair <std::string, int> const & here) {

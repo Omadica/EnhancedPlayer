@@ -28,6 +28,7 @@ private slots:
     void StartPlayback();
     void DrawGraph(QImage img);
     void PrintDecoderInfo(QString dec);
+    void loadDecoders();
 
 signals:
     void readyForFrame();

@@ -12,21 +12,6 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-
-//static void ppm_save(char* filename, AVFrame* frame)
-//{
-//    FILE* file;
-//    int i;
-
-//    file = fopen64(filename, "wb");
-//    frame->data[0];
-//    fprintf(file, "P6\n%d %d\n%d\n", frame->width, frame->height, 255);
-//    for (i = 0; i < frame->height; i++)
-//        fwrite(frame->data[0] + i * frame->linesize[0], 1, frame->width * 3, file);
-//    fclose(file);
-//}
-
-
 AVPixelFormat ConvertFormats(AVFrame* frame)
 {
     switch (frame->format) {
@@ -47,8 +32,8 @@ AVPixelFormat ConvertFormats(AVFrame* frame)
     }
 }
 
-FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel)
-    : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel),
+FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel, QString HWdec_name)
+    : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel), HWDec_name(HWdec_name),
     m_pCctx(nullptr),
     codec(nullptr),
     m_pImg_conversion(nullptr),
@@ -90,7 +75,7 @@ void FFmpegVideoDecoder::decode()
 
     if(bool_hw_accel)
     {
-        type = av_hwdevice_find_type_by_name("dxva2");
+        type = av_hwdevice_find_type_by_name(HWDec_name.toStdString().c_str());
         if (type == AV_HWDEVICE_TYPE_NONE) {
             fprintf(stderr, "Device type %s is not supported.\n", "dxva2");
             fprintf(stderr, "Available device types:");
@@ -109,7 +94,7 @@ void FFmpegVideoDecoder::decode()
         if(!codec)
             emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
         else
-            emit infoDec(QString(codec->name));
+            emit infoDec(HWDec_name);
     }
 
     if(bool_hw_accel){

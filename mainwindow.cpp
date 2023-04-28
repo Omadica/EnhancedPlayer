@@ -64,14 +64,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      */
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
-
-
-
+    connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::loadDecoders()
+{
+    const AVCodec * codec = avcodec_find_decoder_by_name("hevc");
+
+    for (int i = 0;; i++) {
+        const AVCodecHWConfig *config_hevc = avcodec_get_hw_config(codec, i);
+        if(!config_hevc)
+            break;
+        ui->comboBox->addItem(QString(av_hwdevice_get_type_name(config_hevc->device_type)));
+    }
 }
 
 void MainWindow::DrawGraph(QImage img)
@@ -81,7 +91,7 @@ void MainWindow::DrawGraph(QImage img)
 
 void MainWindow::PrintDecoderInfo(QString dec)
 {
-    ui->label_17->setText(dec);
+    //ui->label_17->setText(dec);
 }
 
 void MainWindow::RtspConnection()
@@ -129,7 +139,8 @@ void MainWindow::RtspConnection()
 void MainWindow::StartPlayback()
 {
     bool dxva2_hw = ui->checkBox->isChecked();
-    decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw);
+    QString HWdecoder_name = ui->comboBox->itemText(0);
+    decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
     decoder->moveToThread(thread);
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));

@@ -22,7 +22,7 @@ class FFmpegVideoDecoder : public QObject
 {
     Q_OBJECT
 public:
-    explicit FFmpegVideoDecoder(QObject *parent = nullptr, AVFormatContext* ic = nullptr, AVStream *stream = nullptr, bool hw_accel = false);
+    explicit FFmpegVideoDecoder(QObject *parent = nullptr, AVFormatContext* ic = nullptr, AVStream *stream = nullptr, bool hw_accel = false, QString HWdec_name = "dxva2");
     virtual ~FFmpegVideoDecoder() = default;
 
 public slots:
@@ -65,6 +65,7 @@ private:
     bool bool_hw_accel;
     // Hardware color range conversion
     SwsContext *m_pHWconversion;
+    QString HWDec_name;
 
 
 
