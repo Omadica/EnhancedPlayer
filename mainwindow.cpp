@@ -11,6 +11,7 @@
 #include <QString>
 #include <unordered_map>
 #include "FFmpegLog.h"
+#include "Logger.h"
 
 extern "C"
 {

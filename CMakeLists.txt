@@ -35,9 +35,13 @@ set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         FFmpegLog.cpp
+        Logger.cpp
+        Environment.cpp
         FFmpegVideoDecoder.cpp
         mainwindow.h
         FFmpegLog.h
+        Logger.h
+        Environment.h
         FFmpegVideoDecoder.h
         mainwindow.ui
         ${TS_FILES}
