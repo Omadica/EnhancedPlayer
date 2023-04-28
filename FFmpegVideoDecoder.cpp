@@ -99,6 +99,7 @@ void FFmpegVideoDecoder::decode()
             fprintf(stderr, "\n");
             return;
         }
+        emit infoDec(QString(av_hwdevice_get_type_name(type)));
         ret = av_find_best_stream(m_pIc, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
         video_stream = ret;
     }
@@ -144,12 +145,6 @@ void FFmpegVideoDecoder::decode()
     }
 
     ret = avcodec_open2(m_pCctx, codec, nullptr);
-    if(ret < 0)
-        emit error(QString("FFmpegVideoDecoder: Error, cannot open codec"));
-
-
-
-
 
     m_pFrame = av_frame_alloc();
 
@@ -183,10 +178,10 @@ void FFmpegVideoDecoder::decode()
         m_pHWconversion = sws_getContext
             (m_pFrame_converted->width,
              m_pFrame_converted->height,
-             (AVPixelFormat)hw_pix_fmt,
+             AV_PIX_FMT_NV12,
              m_pFrame_converted->width,
              m_pFrame_converted->height,
-             AV_PIX_FMT_YUV420P,
+             AV_PIX_FMT_RGB24,
              SWS_SPLINE,
              NULL,
              NULL,
@@ -218,41 +213,40 @@ void FFmpegVideoDecoder::decode()
                         ret = av_hwframe_transfer_data(m_pSWFrame, m_pFrame, 0);
                         if(ret<0)
                             fprintf(stderr, "Error transferring the data to system memory\n");
+                        m_pOutFrame = m_pSWFrame;
+                    } else {
+                        m_pOutFrame = m_pFrame;
                     }
 
                     if(bool_hw_accel)
                     {
-//                        sws_scale(m_pHWconversion,
-//                                  m_pSWFrame->data,
-//                                  m_pSWFrame->linesize,
-//                                  0,
-//                                  m_pSWFrame->height,
-//                                  m_pOutFrame->data,
-//                                  m_pOutFrame->linesize
-//                                  );
+                        sws_scale(m_pHWconversion,
+                                  m_pOutFrame->data,
+                                  m_pOutFrame->linesize,
+                                  0,
+                                  m_pOutFrame->height,
+                                  m_pFrame_converted->data,
+                                  m_pFrame_converted->linesize
+                                  );
+                    } else {
+                        sws_scale(m_pImg_conversion,
+                                  m_pOutFrame->data,
+                                  m_pOutFrame->linesize,
+                                  0,
+                                  m_pOutFrame->height,
+                                  m_pFrame_converted->data,
+                                  m_pFrame_converted->linesize
+                                  );
                     }
-                    sws_scale(m_pImg_conversion,
-                              m_pOutFrame->data,
-                              m_pOutFrame->linesize,
-                              0,
-                              m_pOutFrame->height,
-                              m_pFrame_converted->data,
-                              m_pFrame_converted->linesize
-                              );
 
 
-//                    for(int y=0; y < m_pFrame_converted->height; y++)
-//                        memcpy(
-//                            m_pLastFrame.scanLine(y),
-//                            m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
-//                            m_pFrame_converted->width*3
-//                            );
-                    for(int y=0; y < m_pSWFrame->height; y++)
+                    for(int y=0; y < m_pFrame_converted->height; y++)
                         memcpy(
                             m_pLastFrame.scanLine(y),
-                            m_pSWFrame->data[0] + y * m_pSWFrame->linesize[0],
-                            m_pSWFrame->width*3
+                            m_pFrame_converted->data[0] + y * m_pFrame_converted->linesize[0],
+                            m_pFrame_converted->width*3
                             );
+
                     emit ReturnFrame(m_pLastFrame);
                     break;
                 }
