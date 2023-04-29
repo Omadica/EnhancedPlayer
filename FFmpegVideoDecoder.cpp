@@ -12,26 +12,6 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-AVPixelFormat ConvertFormats(AVFrame* frame)
-{
-    switch (frame->format) {
-    case AV_PIX_FMT_YUVJ420P:
-        return AV_PIX_FMT_YUV420P;
-        break;
-    case AV_PIX_FMT_YUVJ422P:
-        return AV_PIX_FMT_YUV422P;
-        break;
-    case AV_PIX_FMT_YUVJ444P:
-        return AV_PIX_FMT_YUV444P;
-        break;
-    case AV_PIX_FMT_YUVJ440P:
-        return AV_PIX_FMT_YUV440P;
-    default:
-        return static_cast<AVPixelFormat>(frame->format);
-        break;
-    }
-}
-
 FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel, QString HWdec_name)
     : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel), HWDec_name(HWdec_name),
     m_pCctx(nullptr),
