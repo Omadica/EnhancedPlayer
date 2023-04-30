@@ -48,7 +48,6 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
 void FFmpegVideoDecoder::decode()
 {
     int ret = 0;
-    int video_stream = 0;
     ret = av_read_play(m_pIc);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
@@ -66,7 +65,6 @@ void FFmpegVideoDecoder::decode()
         }
         emit infoDec(QString(av_hwdevice_get_type_name(type)));
         ret = av_find_best_stream(m_pIc, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
-        video_stream = ret;
     }
     else
     {
@@ -110,6 +108,8 @@ void FFmpegVideoDecoder::decode()
     }
 
     ret = avcodec_open2(m_pCctx, codec, nullptr);
+    if(ret < 0)
+        emit error(QString("FFmpegVideoDecoder: Error, cannot open codec-contex"));
 
     m_pFrame = av_frame_alloc();
 
