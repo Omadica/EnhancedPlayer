@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QThread>
 #include "FFmpegVideoDecoder.h"
+#include "renderarea.h"
 
 extern "C"
 {
@@ -27,8 +28,12 @@ private slots:
     void RtspConnection();
     void StartPlayback();
     void DrawGraph(QImage img);
+    void RenderImage(QImage img);
     void PrintDecoderInfo(QString dec);
     void loadDecoders();
+
+
+    void paintEvent(QPaintEvent *event) override;
 
 signals:
     void readyForFrame();
@@ -43,6 +48,7 @@ private:
     QImage m_FrameImage;
 
     FFmpegVideoDecoder* decoder;
+    RenderArea *originalRenderArea;
 
 
 

@@ -9,9 +9,12 @@
 #include "qaudiodevice.h"
 #include <iostream>
 #include <QString>
+#include <QPainter>
 #include <unordered_map>
 #include "FFmpegLog.h"
 #include "Logger.h"
+
+#include <QVideoWidget>
 
 extern "C"
 {
@@ -57,8 +60,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
     }
 
-
-
     /**
      * @brief Rtsp connection, check if the URI is available
      */
@@ -71,6 +72,14 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+
+void MainWindow::RenderImage(QImage img)
+{
+
+
+}
+
 
 void MainWindow::loadDecoders()
 {
@@ -86,7 +95,8 @@ void MainWindow::loadDecoders()
 
 void MainWindow::DrawGraph(QImage img)
 {
-    ui->label_15->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio)));
+    //ui->label_15->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio, Qt::SmoothTransformationo)));
+    //ui->widget->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio, Qt::SmoothTransformationo)));
 }
 
 void MainWindow::PrintDecoderInfo(QString dec)
@@ -138,14 +148,37 @@ void MainWindow::RtspConnection()
 
 void MainWindow::StartPlayback()
 {
+
     bool dxva2_hw = ui->checkBox->isChecked();
     QString HWdecoder_name = ui->comboBox->itemText(0);
     decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
     decoder->moveToThread(thread);
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
-    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
+    //connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
+    //connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(RenderImage(QImage)));
+    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(paintEvent(QImage)));
     connect(decoder, SIGNAL(infoDec(QString)), this, SLOT(PrintDecoderInfo(QString)));
     thread->start();
 
 }
+
+
+void MainWindow::paintEvent(QPaintEvent *event)
+{
+    QImage img = QImage(4, 4, QImage::Format_RGB888);
+    QRect target = QRect(1,1,105,105);
+    QRect source = QRect(1,1,105,105);
+    QPainter ptr(ui->widget);
+    ptr.drawPixmap(target, QPixmap::fromImage(img), source);
+
+}
+
+
+
+
+
+
+
+
+
 

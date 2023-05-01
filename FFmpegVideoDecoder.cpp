@@ -14,15 +14,15 @@ extern "C"
 
 FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel, QString HWdec_name)
     : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel), HWDec_name(HWdec_name),
-    m_pCctx(nullptr),
-    codec(nullptr),
-    m_pImg_conversion(nullptr),
-    m_pHWconversion(nullptr),
-    m_pPkt(nullptr),
-    m_pFrame(nullptr),
-    m_pFrame_converted(nullptr),
-    m_pSWFrame(nullptr),
-    m_pOutFrame(nullptr)
+        m_pCctx(nullptr),
+        codec(nullptr),
+        m_pImg_conversion(nullptr),
+        m_pHWconversion(nullptr),
+        m_pPkt(nullptr),
+        m_pFrame(nullptr),
+        m_pFrame_converted(nullptr),
+        m_pSWFrame(nullptr),
+        m_pOutFrame(nullptr)
 {
 
 }

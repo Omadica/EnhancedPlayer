@@ -16,7 +16,7 @@ set(ENV{PKG_CONFIG_PATH} "C:/Users/smandelli/Source/Repos/EXERCISES/NewSdkNative
 
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia MultimediaWidgets)
 find_package(OpenGL REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -35,11 +35,13 @@ set(TS_FILES EnhancedPlayer_it_IT.ts)
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
+        renderarea.cpp
         FFmpegLog.cpp
         Logger.cpp
         Environment.cpp
         FFmpegVideoDecoder.cpp
         mainwindow.h
+        renderarea.h
         FFmpegLog.h
         Logger.h
         Environment.h
@@ -75,7 +77,7 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(EnhancedPlayer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedia PkgConfig::LIBAV OpenGL::GL OpenGL::GLU)
+target_link_libraries(EnhancedPlayer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedia  Qt${QT_VERSION_MAJOR}::MultimediaWidgets PkgConfig::LIBAV OpenGL::GL OpenGL::GLU)
 
 set_target_properties(EnhancedPlayer PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
