@@ -268,9 +268,9 @@ void Environment::set_threads(int nthread) {
     return;
 }
 
-std::vector <std::string> Environment::signals() const {
-    return signals_avail_;
-}
+//std::vector <std::string> Environment::signals() const {
+//    return signals_avail_;
+//}
 
 std::vector <std::string> Environment::info() const {
     std::vector <std::string> ret;

@@ -12,43 +12,8 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-
-//static void ppm_save(char* filename, AVFrame* frame)
-//{
-//    FILE* file;
-//    int i;
-
-//    file = fopen64(filename, "wb");
-//    frame->data[0];
-//    fprintf(file, "P6\n%d %d\n%d\n", frame->width, frame->height, 255);
-//    for (i = 0; i < frame->height; i++)
-//        fwrite(frame->data[0] + i * frame->linesize[0], 1, frame->width * 3, file);
-//    fclose(file);
-//}
-
-
-AVPixelFormat ConvertFormats(AVFrame* frame)
-{
-    switch (frame->format) {
-    case AV_PIX_FMT_YUVJ420P:
-        return AV_PIX_FMT_YUV420P;
-        break;
-    case AV_PIX_FMT_YUVJ422P:
-        return AV_PIX_FMT_YUV422P;
-        break;
-    case AV_PIX_FMT_YUVJ444P:
-        return AV_PIX_FMT_YUV444P;
-        break;
-    case AV_PIX_FMT_YUVJ440P:
-        return AV_PIX_FMT_YUV440P;
-    default:
-        return static_cast<AVPixelFormat>(frame->format);
-        break;
-    }
-}
-
-FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel)
-    : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel),
+FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel, QString HWdec_name)
+    : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel), HWDec_name(HWdec_name),
     m_pCctx(nullptr),
     codec(nullptr),
     m_pImg_conversion(nullptr),
@@ -83,14 +48,13 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
 void FFmpegVideoDecoder::decode()
 {
     int ret = 0;
-    int video_stream = 0;
     ret = av_read_play(m_pIc);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
     if(bool_hw_accel)
     {
-        type = av_hwdevice_find_type_by_name("dxva2");
+        type = av_hwdevice_find_type_by_name(HWDec_name.toStdString().c_str());
         if (type == AV_HWDEVICE_TYPE_NONE) {
             fprintf(stderr, "Device type %s is not supported.\n", "dxva2");
             fprintf(stderr, "Available device types:");
@@ -101,7 +65,6 @@ void FFmpegVideoDecoder::decode()
         }
         emit infoDec(QString(av_hwdevice_get_type_name(type)));
         ret = av_find_best_stream(m_pIc, AVMEDIA_TYPE_VIDEO, -1, -1, &codec, 0);
-        video_stream = ret;
     }
     else
     {
@@ -109,7 +72,7 @@ void FFmpegVideoDecoder::decode()
         if(!codec)
             emit error(QString("FFmpegVideoDecoder: Error, cannot find decoder by codec_ID"));
         else
-            emit infoDec(QString(codec->name));
+            emit infoDec(HWDec_name);
     }
 
     if(bool_hw_accel){
@@ -145,6 +108,8 @@ void FFmpegVideoDecoder::decode()
     }
 
     ret = avcodec_open2(m_pCctx, codec, nullptr);
+    if(ret < 0)
+        emit error(QString("FFmpegVideoDecoder: Error, cannot open codec-contex"));
 
     m_pFrame = av_frame_alloc();
 

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <sstream>
+
 
 
 
@@ -30,8 +30,13 @@ class Environment {
 
         std::string log_level() const;
         void set_log_level(char const * level);
+<<<<<<< HEAD
         std::vector <std::string> signals();
         std::vector <std::string> info();
+=======
+        //std::vector <std::string> signals() const;
+        std::vector <std::string> info() const;
+>>>>>>> 37c3bcfe625458e67c79f7b71cfb1cc7110a8f38
         void print() const;
         bool use_mpi() const;
         bool function_timers() const;
