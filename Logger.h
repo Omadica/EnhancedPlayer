@@ -61,14 +61,4 @@ public:
 };
 
 
-
-
-
-
-
-
-
-
-
-
 #endif // __LOGGER_H_CUSTOM__

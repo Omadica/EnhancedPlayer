@@ -1,11 +1,8 @@
 #include "Logger.h"
-<<<<<<< HEAD
 #include <ctime>
 #include <iostream>
-=======
 #include <cstring>
-class Environment;
->>>>>>> 37c3bcfe625458e67c79f7b71cfb1cc7110a8f38
+
 
 logger::logger()
 {
@@ -82,69 +79,3 @@ const std::string logstream::get_time_string()
     return ("[" + std::string(t_str) + "]");
 }
 
-<<<<<<< HEAD
-=======
-void Logger::info(char const * msg, std::pair <std::string, int> const & here) {
-    if (level_ <= log_level::info) {
-        std::string hstr = format_here(here);
-        fprintf(stdout, "%sINFO: %s (%s)\n", prefix_.c_str(), msg,
-                hstr.c_str());
-        fflush(stdout);
-    }
-    return;
-}
-
-void Logger::warning(char const * msg) {
-    if (level_ <= log_level::warning) {
-        fprintf(stdout, "%sWARNING: %s\n", prefix_.c_str(), msg);
-        fflush(stdout);
-    }
-    return;
-}
-
-void Logger::warning(char const * msg, std::pair <std::string, int> const & here) {
-    if (level_ <= log_level::warning) {
-        std::string hstr = format_here(here);
-        fprintf(stdout, "%sWARNING: %s (%s)\n", prefix_.c_str(), msg,
-                hstr.c_str());
-        fflush(stdout);
-    }
-    return;
-}
-
-void Logger::error(char const * msg) {
-    if (level_ <= log_level::error) {
-        fprintf(stdout, "%sERROR: %s\n", prefix_.c_str(), msg);
-        fflush(stdout);
-    }
-    return;
-}
-
-void Logger::error(char const * msg, std::pair <std::string, int> const & here) {
-    if (level_ <= log_level::error) {
-        std::string hstr = format_here(here);
-        fprintf(stdout, "%sERROR: %s (%s)\n", prefix_.c_str(), msg,
-                hstr.c_str());
-        fflush(stdout);
-    }
-    return;
-}
-
-void Logger::critical(char const * msg) {
-    if (level_ <= log_level::critical) {
-        fprintf(stdout, "%sCRITICAL: %s\n", prefix_.c_str(), msg);
-        fflush(stdout);
-    }
-    return;
-}
-
-void Logger::critical(char const * msg, std::pair <std::string, int> const & here) {
-    if (level_ <= log_level::critical) {
-        std::string hstr = format_here(here);
-        fprintf(stdout, "%sCRITICAL: %s (%s)\n", prefix_.c_str(), msg,
-                hstr.c_str());
-        fflush(stdout);
-    }
-    return;
-}
->>>>>>> 37c3bcfe625458e67c79f7b71cfb1cc7110a8f38
