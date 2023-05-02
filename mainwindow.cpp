@@ -4,6 +4,7 @@
 #include <QListView>
 #include <QPainter>
 #include <QPixmap>
+#include <QIcon>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "qaudiodevice.h"
@@ -29,6 +30,7 @@ std::unordered_map<AVCodecID, QString> Supported_codec = {
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    logger::log() << "Hello world";
     thread = new QThread();
     /**
      * @brief Catch the FFmpeg log and put them on std::out
@@ -56,6 +58,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         auto res_min = it.photoResolutions().last();
         item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
     }
+
+    QIcon p = QIcon(QPixmap::fromImage(QImage(4, 4, QImage::Format_RGB888)));
+    this->setWindowIcon(p);
 
 
 
@@ -105,7 +110,7 @@ void MainWindow::RtspConnection()
     int nVideoStream = -1;
     int nAudioStream = -1;
 
-    for(int i=0; i< m_pFormatContext->nb_streams; i++)
+    for(int i=0; i < m_pFormatContext->nb_streams; i++)
     {
         m_pRtspStream = m_pFormatContext->streams[i];
         if (m_pRtspStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){

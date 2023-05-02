@@ -30,8 +30,8 @@ class Environment {
 
         std::string log_level() const;
         void set_log_level(char const * level);
-        std::vector <std::string> signals() const;
-        std::vector <std::string> info() const;
+        std::vector <std::string> signals();
+        std::vector <std::string> info();
         void print() const;
         bool use_mpi() const;
         bool function_timers() const;
