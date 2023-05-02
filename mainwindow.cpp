@@ -31,7 +31,9 @@ std::unordered_map<AVCodecID, QString> Supported_codec = {
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     logger::log() << "Hello world";
-    thread = new QThread();
+
+
+
     /**
      * @brief Catch the FFmpeg log and put them on std::out
      */
@@ -64,6 +66,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
 
+
+
     /**
      * @brief Rtsp connection, check if the URI is available
      */
@@ -89,9 +93,24 @@ void MainWindow::loadDecoders()
     }
 }
 
-void MainWindow::DrawGraph(QImage img)
+void MainWindow::DrawGraph1(QImage img)
 {
-    ui->label_15->setPixmap(QPixmap::fromImage(img.scaled( ui->label_15->width(), ui->label_15->height(), Qt::KeepAspectRatio)));
+    ui->cella1->setPixmap(QPixmap::fromImage(img.scaled( ui->cella1->width(), ui->cella1->height(), Qt::KeepAspectRatio)));
+    //ui->cella2->setPixmap(QPixmap::fromImage(img.scaled( ui->cella2->width(), ui->cella2->height(), Qt::KeepAspectRatio)));
+    ui->cella3->setPixmap(QPixmap::fromImage(img.scaled( ui->cella3->width(), ui->cella3->height(), Qt::KeepAspectRatio)));
+    ui->cella4->setPixmap(QPixmap::fromImage(img.scaled( ui->cella4->width(), ui->cella4->height(), Qt::KeepAspectRatio)));
+}
+void MainWindow::DrawGraph2(QImage img)
+{
+    ui->cella2->setPixmap(QPixmap::fromImage(img.scaled( ui->cella2->width(), ui->cella2->height(), Qt::KeepAspectRatio)));
+}
+void MainWindow::DrawGraph3(QImage img)
+{
+    ui->cella3->setPixmap(QPixmap::fromImage(img.scaled( ui->cella3->width(), ui->cella3->height(), Qt::KeepAspectRatio)));
+}
+void MainWindow::DrawGraph4(QImage img)
+{
+    ui->cella4->setPixmap(QPixmap::fromImage(img.scaled( ui->cella4->width(), ui->cella4->height(), Qt::KeepAspectRatio)));
 }
 
 void MainWindow::PrintDecoderInfo(QString dec)
@@ -104,8 +123,10 @@ void MainWindow::RtspConnection()
     int ret = 0;
     m_pFormatContext = avformat_alloc_context();
 
+
     QString ip_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text() + ui->textOptions->text();
     ret = avformat_open_input(&m_pFormatContext, ip_addr.toStdString().c_str(), NULL, NULL);
+
 
     if (ret < 0)
         qDebug() << "Error to create AvFormatContext";
@@ -143,15 +164,35 @@ void MainWindow::RtspConnection()
 
 void MainWindow::StartPlayback()
 {
+    QThreadPool pool = QThreadPool::globalInstance();
+
+    QThread *thread1 = new QThread();;
+    QThread *t2 = new QThread();
     bool dxva2_hw = ui->checkBox->isChecked();
     QString HWdecoder_name = ui->comboBox->currentText();
     qDebug() << HWdecoder_name.toStdString().c_str();
-    decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
-    decoder->moveToThread(thread);
-    connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
-    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
-    connect(decoder, SIGNAL(infoDec(QString)), this, SLOT(PrintDecoderInfo(QString)));
-    thread->start();
+
+    decoder1 = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
+    FFmpegVideoDecoder* d2 = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
+
+
+
+    decoder1->moveToThread(thread1);
+    //d2->moveToThread(t2);
+
+
+
+    connect(thread1, &QThread::started, decoder1, &FFmpegVideoDecoder::decode);
+    connect(t2, &QThread::started, d2, &FFmpegVideoDecoder::decode);
+
+
+    connect(decoder1, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph1(QImage)));
+    connect(d2, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph2(QImage)));
+
+
+    thread1->start();
+    //t2->start();
+
 
 }
 
