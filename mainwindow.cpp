@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     /**
      * @brief Catch the FFmpeg log and put them on std::out
      */
-    my_libav *av_log = new my_libav();
+    // my_libav *av_log = new my_libav();
 
     /**
      * @brief Set-up the user interface
@@ -79,7 +79,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::loadDecoders()
 {
-    const AVCodec * codec = avcodec_find_decoder_by_name("hevc");
+    const AVCodec * codec = avcodec_find_decoder(AV_CODEC_ID_HEVC);
 
     for (int i = 0;; i++) {
         const AVCodecHWConfig *config_hevc = avcodec_get_hw_config(codec, i);
@@ -96,7 +96,7 @@ void MainWindow::DrawGraph(QImage img)
 
 void MainWindow::PrintDecoderInfo(QString dec)
 {
-    //ui->label_17->setText(dec);
+    ui->label_17->setText(dec);
 }
 
 void MainWindow::RtspConnection()
@@ -120,7 +120,7 @@ void MainWindow::RtspConnection()
     int nVideoStream = -1;
     int nAudioStream = -1;
 
-    for(int i=0; i < m_pFormatContext->nb_streams; i++)
+    for(unsigned int i=0; i < m_pFormatContext->nb_streams; i++)
     {
         m_pRtspStream = m_pFormatContext->streams[i];
         if (m_pRtspStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
@@ -144,7 +144,8 @@ void MainWindow::RtspConnection()
 void MainWindow::StartPlayback()
 {
     bool dxva2_hw = ui->checkBox->isChecked();
-    QString HWdecoder_name = ui->comboBox->itemText(0);
+    QString HWdecoder_name = ui->comboBox->currentText();
+    qDebug() << HWdecoder_name.toStdString().c_str();
     decoder = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
     decoder->moveToThread(thread);
     connect( thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);

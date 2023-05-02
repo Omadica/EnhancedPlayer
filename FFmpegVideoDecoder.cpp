@@ -5,6 +5,7 @@
 #include <string>
 #include <QDebug>
 #include <QLabel>
+#include "Logger.h"
 
 
 extern "C"
@@ -24,7 +25,7 @@ FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVS
     m_pSWFrame(nullptr),
     m_pOutFrame(nullptr)
 {
-
+    qDebug() << HWdec_name.toStdString().c_str();
 }
 
 static AVBufferRef *hw_device_ctx = NULL;
@@ -55,11 +56,12 @@ void FFmpegVideoDecoder::decode()
     if(bool_hw_accel)
     {
         type = av_hwdevice_find_type_by_name(HWDec_name.toStdString().c_str());
+        qDebug() << HWDec_name.toStdString().c_str();
         if (type == AV_HWDEVICE_TYPE_NONE) {
             fprintf(stderr, "Device type %s is not supported.\n", "dxva2");
             fprintf(stderr, "Available device types:");
             while((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
-                fprintf(stderr, " %s", av_hwdevice_get_type_name(type));
+                logger::log() << av_hwdevice_get_type_name(type);
             fprintf(stderr, "\n");
             return;
         }
