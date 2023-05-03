@@ -30,10 +30,6 @@ std::unordered_map<AVCodecID, QString> Supported_codec = {
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-    logger::log() << "Hello world";
-
-
-
     /**
      * @brief Catch the FFmpeg log and put them on std::out
      */
@@ -191,6 +187,8 @@ void MainWindow::StartPlayback()
 
 
     thread1->start();
+    while(true)
+        logger::log() << "MainThread Log";
     //t2->start();
 
 

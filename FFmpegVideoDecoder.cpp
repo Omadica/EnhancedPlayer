@@ -48,6 +48,10 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
 
 void FFmpegVideoDecoder::decode()
 {
+    while(true)
+        logger::log() << "FFmpegVideoDecoder Log";
+
+
     int ret = 0;
     ret = av_read_play(m_pIc);
     if(ret < 0)
