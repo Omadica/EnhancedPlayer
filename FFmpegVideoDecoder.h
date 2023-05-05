@@ -22,7 +22,7 @@ class FFmpegVideoDecoder : public QObject
 {
     Q_OBJECT
 public:
-    explicit FFmpegVideoDecoder(QObject *parent = nullptr, AVFormatContext* ic = nullptr, AVStream *stream = nullptr, bool hw_accel = false, QString HWdec_name = "dxva2");
+    explicit FFmpegVideoDecoder(QObject *parent = nullptr, QString rtsp_addr = "", bool hw_accel = false, QString HWdec_name = "dxva2");
     virtual ~FFmpegVideoDecoder() = default;
 
 public slots:
@@ -43,6 +43,7 @@ private:
     /**
      * @brief Software decoding
      */
+    QString rtsp_addr;
     AVCodecContext* m_pCctx;
     const AVCodec* codec;
     AVFormatContext* m_pIc;

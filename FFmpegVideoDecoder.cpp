@@ -13,8 +13,8 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVStream* stream, bool hw_accel, QString HWdec_name)
-    : QObject{parent}, m_pIc(ic), m_pStream(stream), bool_hw_accel(hw_accel), HWDec_name(HWdec_name),
+FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, QString rtsp, bool hw_accel, QString HWdec_name)
+    : QObject{parent}, rtsp_addr(rtsp), bool_hw_accel(hw_accel), HWDec_name(HWdec_name),
     m_pCctx(nullptr),
     codec(nullptr),
     m_pImg_conversion(nullptr),
@@ -23,7 +23,9 @@ FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVS
     m_pFrame(nullptr),
     m_pFrame_converted(nullptr),
     m_pSWFrame(nullptr),
-    m_pOutFrame(nullptr)
+    m_pOutFrame(nullptr),
+    m_pIc(nullptr),
+    m_pStream(nullptr)
 {
     qDebug() << HWdec_name.toStdString().c_str();
 }
@@ -31,8 +33,7 @@ FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, AVFormatContext* ic, AVS
 static AVBufferRef *hw_device_ctx = NULL;
 static enum AVPixelFormat hw_pix_fmt;
 
-static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
-                                        const enum AVPixelFormat *pix_fmts)
+static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts)
 {
     const enum AVPixelFormat *p;
 
@@ -48,11 +49,14 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
 
 void FFmpegVideoDecoder::decode()
 {
-    while(true)
-        logger::log() << "FFmpegVideoDecoder Log";
-
-
     int ret = 0;
+    ret = avformat_open_input(&m_pIc, rtsp_addr.toStdString().c_str(), NULL, NULL);
+
+    if (ret < 0)
+        qDebug() << "Error to create AvFormatContext";
+
+    ret = avformat_find_stream_info(m_pIc, NULL);
+
     ret = av_read_play(m_pIc);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));

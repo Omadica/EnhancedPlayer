@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QIcon>
+#include <QTimer>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "qaudiodevice.h"
@@ -120,8 +121,8 @@ void MainWindow::RtspConnection()
     m_pFormatContext = avformat_alloc_context();
 
 
-    QString ip_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text() + ui->textOptions->text();
-    ret = avformat_open_input(&m_pFormatContext, ip_addr.toStdString().c_str(), NULL, NULL);
+    rtsp_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text() + ui->textOptions->text();
+    ret = avformat_open_input(&m_pFormatContext, rtsp_addr.toStdString().c_str(), NULL, NULL);
 
 
     if (ret < 0)
@@ -134,22 +135,21 @@ void MainWindow::RtspConnection()
     if(ret < 0)
         qDebug() << "Error to find stream";
 
-    int nVideoStream = -1;
-    int nAudioStream = -1;
+    int nVideoStream = 0;
+    int nAudioStream = 0;
 
     for(unsigned int i=0; i < m_pFormatContext->nb_streams; i++)
     {
-        m_pRtspStream = m_pFormatContext->streams[i];
-        if (m_pRtspStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
-            ui->label_10->setText(QString::number(m_pRtspStream->codecpar->width) + "X" + QString::number(m_pRtspStream->codecpar->height));
-            auto codec = Supported_codec.find(m_pRtspStream->codecpar->codec_id);
+        if (m_pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
+            ui->label_10->setText(QString::number(m_pFormatContext->streams[i]->codecpar->width) + "X" + QString::number(m_pFormatContext->streams[i]->codecpar->height));
+            auto codec = Supported_codec.find(m_pFormatContext->streams[i]->codecpar->codec_id);
             ui->label_11->setText(codec->second);
-            ui->label_12->setText(QString::number(m_pRtspStream->codecpar->format));
-            ui->label_14->setText(QString::number(m_pRtspStream->r_frame_rate.num) + "/" + QString::number(m_pRtspStream->r_frame_rate.den));
+            ui->label_12->setText(QString::number(m_pFormatContext->streams[i]->codecpar->format));
+            ui->label_14->setText(QString::number(m_pFormatContext->streams[i]->r_frame_rate.num) + "/" + QString::number(m_pFormatContext->streams[i]->r_frame_rate.den));
 
             nVideoStream = i;
         }
-        if (m_pRtspStream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+        if (m_pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
             nAudioStream = i;
 
         if(nVideoStream == -1 || nAudioStream == -1)
@@ -160,37 +160,18 @@ void MainWindow::RtspConnection()
 
 void MainWindow::StartPlayback()
 {
-    QThreadPool pool = QThreadPool::globalInstance();
+    QThread *thread = new QThread();;
+    bool hw_dec = ui->checkBox->isChecked();
 
-    QThread *thread1 = new QThread();;
-    QThread *t2 = new QThread();
-    bool dxva2_hw = ui->checkBox->isChecked();
     QString HWdecoder_name = ui->comboBox->currentText();
     qDebug() << HWdecoder_name.toStdString().c_str();
 
-    decoder1 = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
-    FFmpegVideoDecoder* d2 = new FFmpegVideoDecoder(nullptr, m_pFormatContext, m_pRtspStream, dxva2_hw, HWdecoder_name);
+    decoder = new FFmpegVideoDecoder(nullptr, rtsp_addr, hw_dec, HWdecoder_name);
+    decoder->moveToThread(thread);
+    connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
+    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph1(QImage)));
 
-
-
-    decoder1->moveToThread(thread1);
-    //d2->moveToThread(t2);
-
-
-
-    connect(thread1, &QThread::started, decoder1, &FFmpegVideoDecoder::decode);
-    connect(t2, &QThread::started, d2, &FFmpegVideoDecoder::decode);
-
-
-    connect(decoder1, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph1(QImage)));
-    connect(d2, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph2(QImage)));
-
-
-    thread1->start();
-    while(true)
-        logger::log() << "MainThread Log";
-    //t2->start();
-
+    thread->start();
 
 }
 

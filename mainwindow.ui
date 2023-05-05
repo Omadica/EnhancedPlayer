@@ -76,7 +76,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>10.31.7.126</string>
+           <string>192.168.1.172</string>
           </property>
          </widget>
          <widget class="QLabel" name="label">
@@ -134,7 +134,7 @@
            <string notr="true">lineedit-password-character: 9679</string>
           </property>
           <property name="text">
-           <string>admin</string>
+           <string>Heisenberg</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_3">
@@ -160,7 +160,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>/stream1</string>
+           <string>/Streaming/Channels/102</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_4">
@@ -215,7 +215,7 @@
            <string>Playback</string>
           </property>
          </widget>
-         <widget class="QWidget" name="">
+         <widget class="QWidget" name="layoutWidget">
           <property name="geometry">
            <rect>
             <x>-1</x>
@@ -433,7 +433,7 @@
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

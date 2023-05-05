@@ -41,13 +41,9 @@ signals:
 private:
     // pass the ref to rstp_connection
     AVFormatContext* m_pFormatContext;
-
-    AVStream* m_pRtspStream;
-
     QImage m_FrameImage;
-
-
-    FFmpegVideoDecoder* decoder1;
+    FFmpegVideoDecoder* decoder;
+    QString rtsp_addr;
 
 
 
