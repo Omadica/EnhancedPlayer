@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QThreadPool>
+#include <QGraphicsScene>
 #include "FFmpegVideoDecoder.h"
 
 extern "C"
@@ -27,10 +28,7 @@ public:
 private slots:
     void RtspConnection();
     void StartPlayback();
-    void DrawGraph1(QImage img);
-    void DrawGraph2(QImage img);
-    void DrawGraph3(QImage img);
-    void DrawGraph4(QImage img);
+    void DrawGraph(QImage img);
     void PrintDecoderInfo(QString dec);
     void loadDecoders();
 
@@ -44,6 +42,7 @@ private:
     QImage m_FrameImage;
     FFmpegVideoDecoder* decoder;
     QString rtsp_addr;
+    QGraphicsScene *scene;
 
 
 

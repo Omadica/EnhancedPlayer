@@ -12,6 +12,8 @@
 #include <iostream>
 #include <QString>
 #include <unordered_map>
+#include <QGraphicsPixmapItem>
+#include <QtOpenGLWidgets/QOpenGLWidget>
 #include "FFmpegLog.h"
 #include "Logger.h"
 
@@ -61,6 +63,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QIcon p = QIcon(QPixmap::fromImage(QImage(4, 4, QImage::Format_RGB888)));
     this->setWindowIcon(p);
 
+    /**/
+    scene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(scene);
 
 
 
@@ -90,24 +95,11 @@ void MainWindow::loadDecoders()
     }
 }
 
-void MainWindow::DrawGraph1(QImage img)
+void MainWindow::DrawGraph(QImage img)
 {
-    ui->cella1->setPixmap(QPixmap::fromImage(img.scaled( ui->cella1->width(), ui->cella1->height(), Qt::KeepAspectRatio)));
-    //ui->cella2->setPixmap(QPixmap::fromImage(img.scaled( ui->cella2->width(), ui->cella2->height(), Qt::KeepAspectRatio)));
-    ui->cella3->setPixmap(QPixmap::fromImage(img.scaled( ui->cella3->width(), ui->cella3->height(), Qt::KeepAspectRatio)));
-    ui->cella4->setPixmap(QPixmap::fromImage(img.scaled( ui->cella4->width(), ui->cella4->height(), Qt::KeepAspectRatio)));
-}
-void MainWindow::DrawGraph2(QImage img)
-{
-    ui->cella2->setPixmap(QPixmap::fromImage(img.scaled( ui->cella2->width(), ui->cella2->height(), Qt::KeepAspectRatio)));
-}
-void MainWindow::DrawGraph3(QImage img)
-{
-    ui->cella3->setPixmap(QPixmap::fromImage(img.scaled( ui->cella3->width(), ui->cella3->height(), Qt::KeepAspectRatio)));
-}
-void MainWindow::DrawGraph4(QImage img)
-{
-    ui->cella4->setPixmap(QPixmap::fromImage(img.scaled( ui->cella4->width(), ui->cella4->height(), Qt::KeepAspectRatio)));
+    scene->clear();
+    scene->addPixmap(QPixmap::fromImage(img));
+
 }
 
 void MainWindow::PrintDecoderInfo(QString dec)
@@ -169,7 +161,7 @@ void MainWindow::StartPlayback()
     decoder = new FFmpegVideoDecoder(nullptr, rtsp_addr, hw_dec, HWdecoder_name);
     decoder->moveToThread(thread);
     connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
-    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph1(QImage)));
+    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
 
     thread->start();
 

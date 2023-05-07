@@ -35,10 +35,12 @@ set(TS_FILES EnhancedPlayer_it_IT.ts)
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
+        custom_view.cpp
         FFmpegLog.cpp
         Logger.cpp
         FFmpegVideoDecoder.cpp
         mainwindow.h
+        custom_view.h
         FFmpegLog.h
         Logger.h
         FFmpegVideoDecoder.h
