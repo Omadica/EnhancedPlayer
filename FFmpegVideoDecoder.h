@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QImage>
+#include <NvCodec/NvDecoder/NvDecoder.h>
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -22,7 +23,7 @@ class FFmpegVideoDecoder : public QObject
 {
     Q_OBJECT
 public:
-    explicit FFmpegVideoDecoder(QObject *parent = nullptr, QString rtsp_addr = "", bool hw_accel = false, QString HWdec_name = "dxva2");
+    explicit FFmpegVideoDecoder(QObject *parent = nullptr, QString rtsp_addr = "", bool hw_accel = false, bool nv_dev = false, QString HWdec_name = "dxva2");
     virtual ~FFmpegVideoDecoder() = default;
 
 public slots:
@@ -64,6 +65,9 @@ private:
     AVFrame* m_pSWFrame;
     AVFrame* m_pOutFrame;
     bool bool_hw_accel;
+    bool nv_hw_dev;
+    NvDecoder* nv_dec;
+    CUcontext* cuContext;
     // Hardware color range conversion
     SwsContext *m_pHWconversion;
     QString HWDec_name;

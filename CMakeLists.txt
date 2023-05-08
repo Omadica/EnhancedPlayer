@@ -9,7 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
+set(NV_VIDEO_CODEC_SDK_LIB "D:/Video_Codec_SDK_11.1.5/Lib/x64")
+set(NV_VIDEO_CODEC_SDK_INTERFACES "D:/Video_Codec_SDK_11.1.5/Interface/")
+set(NV_VIDEO_CODEC_SDK_UTILS_INCS "D:/Video_Codec_SDK_11.1.5/Samples/")
 
 list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.5.0/msvc2019_64/lib/cmake")
 set(ENV{PKG_CONFIG_PATH} "C:/Users/smandelli/Source/Repos/EXERCISES/NewSdkNative/cmake/pkgconfig")
@@ -17,7 +19,12 @@ set(ENV{PKG_CONFIG_PATH} "C:/Users/smandelli/Source/Repos/EXERCISES/NewSdkNative
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
+
+
+
 find_package(OpenGL REQUIRED)
+find_package(CUDA REQUIRED)
+enable_language(CUDA)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
@@ -30,20 +37,23 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libswscale
 )
 
-set(TS_FILES EnhancedPlayer_it_IT.ts)
+
+set(TS_FILES EnhancedPlayer_it_IT.ts )
 
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         custom_view.cpp
         FFmpegLog.cpp
-        Logger.cpp
         FFmpegVideoDecoder.cpp
+        NvDecoder.cpp
+        glrender.cpp
         mainwindow.h
         custom_view.h
         FFmpegLog.h
-        Logger.h
         FFmpegVideoDecoder.h
+        NvDecoder.h
+        glrender.h
         mainwindow.ui
         ${TS_FILES}
 )
@@ -53,19 +63,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET EnhancedPlayer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
     if(ANDROID)
         add_library(EnhancedPlayer SHARED
             ${PROJECT_SOURCES}
         )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(EnhancedPlayer
             ${PROJECT_SOURCES}
@@ -75,7 +78,25 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(EnhancedPlayer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedia PkgConfig::LIBAV OpenGL::GL OpenGL::GLU)
+
+target_include_directories(EnhancedPlayer BEFORE PRIVATE
+    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    ${NV_VIDEO_CODEC_SDK_INTERFACES}
+    ${NV_VIDEO_CODEC_SDK_UTILS_INCS}
+
+)
+
+target_link_libraries(EnhancedPlayer PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Multimedia
+    PkgConfig::LIBAV
+    OpenGL::GL
+    OpenGL::GLU
+    "${NV_VIDEO_CODEC_SDK_LIB}/nvcuvid.lib"
+    "${NV_VIDEO_CODEC_SDK_LIB}/nvencodeapi.lib"
+    "D:/CUDA/cuda_cudart/cudart/lib/x64/cuda.lib"
+    "D:/CUDA/cuda_cudart/cudart/lib/x64/cudart.lib"
+)
 
 set_target_properties(EnhancedPlayer PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -89,10 +110,13 @@ install(TARGETS EnhancedPlayer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+message("INSTALL DIR:" ${CMAKE_INSTALL_LIBDIR})
+
+
 install(CODE [[
   file(GET_RUNTIME_DEPENDENCIES
     PRE_INCLUDE_REGEXES "^[Mm][Yy][Ll][Ii][Bb][Rr][Aa][Rr][Yy]\\.[Dd][Ll][Ll]$"
-    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedi
+    Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedia
     )
   ]])
 

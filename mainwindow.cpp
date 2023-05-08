@@ -15,7 +15,8 @@
 #include <QGraphicsPixmapItem>
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include "FFmpegLog.h"
-#include "Logger.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 extern "C"
 {
@@ -42,6 +43,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      * @brief Set-up the user interface
      */
     ui->setupUi(this);
+
+
+
+    /**
+     * check Nvidia device(s) (The device search has to be improved)
+     */
+    int nGpu = 0;
+    cuDeviceGetCount(&nGpu);
+
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
+    ui->deviceNames->addItem(QString(prop.name));
+
+
 
     /**
      * @brief Create QmediaDev and search for local cams
@@ -154,11 +169,12 @@ void MainWindow::StartPlayback()
 {
     QThread *thread = new QThread();;
     bool hw_dec = ui->checkBox->isChecked();
+    bool nvidia_devices = ui->deviceNames->currentText() != "" ? true : false;
 
     QString HWdecoder_name = ui->comboBox->currentText();
     qDebug() << HWdecoder_name.toStdString().c_str();
 
-    decoder = new FFmpegVideoDecoder(nullptr, rtsp_addr, hw_dec, HWdecoder_name);
+    decoder = new FFmpegVideoDecoder(nullptr, rtsp_addr, hw_dec, nvidia_devices, HWdecoder_name);
     decoder->moveToThread(thread);
     connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));

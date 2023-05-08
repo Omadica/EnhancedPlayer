@@ -76,7 +76,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>192.168.1.172</string>
+           <string>10.31.7.126</string>
           </property>
          </widget>
          <widget class="QLabel" name="label">
@@ -134,7 +134,7 @@
            <string notr="true">lineedit-password-character: 9679</string>
           </property>
           <property name="text">
-           <string>Heisenberg</string>
+           <string>admin</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_3">
@@ -160,7 +160,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>/Streaming/Channels/102</string>
+           <string>/stream1</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_4">
@@ -322,6 +322,9 @@
               <widget class="QComboBox" name="comboBox"/>
              </item>
              <item>
+              <widget class="QComboBox" name="deviceNames"/>
+             </item>
+             <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -342,7 +345,11 @@
        </widget>
       </item>
       <item>
-       <widget class="custom_view" name="graphicsView"/>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="custom_view" name="graphicsView"/>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -354,7 +361,7 @@
      <x>0</x>
      <y>0</y>
      <width>1210</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -370,7 +377,7 @@
   <customwidget>
    <class>custom_view</class>
    <extends>QGraphicsView</extends>
-   <header>custom_view.h</header>
+   <header location="global">custom_view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
