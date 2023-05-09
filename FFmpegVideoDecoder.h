@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <QImage>
-#include <NvCodec/NvDecoder/NvDecoder.h>
+#include <Utils/NvCodecUtils.h>
+#include "NvDecoder.h"
 extern "C"
 {
 #include <libavcodec/avcodec.h>

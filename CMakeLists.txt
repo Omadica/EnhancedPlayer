@@ -9,22 +9,30 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(NV_VIDEO_CODEC_SDK_LIB "D:/Video_Codec_SDK_11.1.5/Lib/x64")
-set(NV_VIDEO_CODEC_SDK_INTERFACES "D:/Video_Codec_SDK_11.1.5/Interface/")
-set(NV_VIDEO_CODEC_SDK_UTILS_INCS "D:/Video_Codec_SDK_11.1.5/Samples/")
+if(WIN32)
+    set(NV_VIDEO_CODEC_SDK_LIB "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvcuvid.lib")
+    list(APPEND NV_VIDEO_CODEC_SDK_LIB  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvencodeapi.lib")
 
-list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.5.0/msvc2019_64/lib/cmake")
-set(ENV{PKG_CONFIG_PATH} "C:/Users/smandelli/Source/Repos/EXERCISES/NewSdkNative/cmake/pkgconfig")
+else()
+    list(APPEND ${CMAKE_LIBRARY_PATH} "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64")
+endif()
 
+set(NV_VIDEO_CODEC_SDK_UTILS_INCS "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Samples/")
+set(NV_VIDEO_CODEC_SDK_INTERFACES "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Interface/")
+
+if(WIN32)
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.0/msvc2019_64/lib/cmake")
+else()
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.0/gcc_64/lib/cmake")
+endif()
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 
-
-
 find_package(OpenGL REQUIRED)
 find_package(CUDA REQUIRED)
 enable_language(CUDA)
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
@@ -54,6 +62,7 @@ set(PROJECT_SOURCES
         FFmpegVideoDecoder.h
         NvDecoder.h
         glrender.h
+        Logger.h
         mainwindow.ui
         ${TS_FILES}
 )
@@ -92,11 +101,12 @@ target_link_libraries(EnhancedPlayer PRIVATE
     PkgConfig::LIBAV
     OpenGL::GL
     OpenGL::GLU
-    "${NV_VIDEO_CODEC_SDK_LIB}/nvcuvid.lib"
-    "${NV_VIDEO_CODEC_SDK_LIB}/nvencodeapi.lib"
-    "D:/CUDA/cuda_cudart/cudart/lib/x64/cuda.lib"
-    "D:/CUDA/cuda_cudart/cudart/lib/x64/cudart.lib"
+    nvcuvid
+    nvidia-encode
+    cuda
+    cudart
 )
+
 
 set_target_properties(EnhancedPlayer PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
