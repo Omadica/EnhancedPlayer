@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QImage>
-#include <Utils/NvCodecUtils.h>
+#include "NvCodecUtils.h"
 #include "NvDecoder.h"
 extern "C"
 {

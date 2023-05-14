@@ -1,4 +1,5 @@
 #include "FFmpegVideoDecoder.h"
+#include "AppDecUtils.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -7,7 +8,6 @@
 #include <QLabel>
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <AppDecode/Common/AppDecUtils.h>
 #include <QByteArray>
 
 
@@ -213,16 +213,12 @@ void FFmpegVideoDecoder::decode()
 
         char err_buf[1024];
         int frames = 0;
-        while(av_read_frame(m_pIc, m_pPkt) >= 0)// && frames < 100)
+        while(av_read_frame(m_pIc, m_pPkt) >= 0)
         {
             if(m_pPkt->stream_index == AVMEDIA_TYPE_VIDEO)
             {
                 m_pPkt->stream_index = m_pIc->streams[0]->id;
-
                 ret = avcodec_send_packet(m_pCctx, m_pPkt);
-
-                av_strerror(ret , err_buf, 1024);
-                qDebug() << err_buf << "\n";
                 if(ret < 0)
                     emit error(QString("FFmpegVideoDecoder: Error, cannot send packet") + QString::fromStdString(err_buf));
 
@@ -283,7 +279,7 @@ void FFmpegVideoDecoder::decode()
                 }
             }
             frames++;
-            std::cout << frames << std::endl;
+
             av_packet_unref(m_pPkt);
             av_frame_unref(m_pFrame);
             if(m_pSWFrame)

@@ -5,25 +5,23 @@ project(EnhancedPlayer VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
-    set(NV_VIDEO_CODEC_SDK_LIB "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvcuvid.lib")
-    list(APPEND NV_VIDEO_CODEC_SDK_LIB  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvencodeapi.lib")
-
-else()
-    list(APPEND ${CMAKE_LIBRARY_PATH} "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64")
-endif()
-
-set(NV_VIDEO_CODEC_SDK_UTILS_INCS "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Samples/")
-set(NV_VIDEO_CODEC_SDK_INTERFACES "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Interface/")
-
-if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.0/msvc2019_64/lib/cmake")
 else()
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.0/gcc_64/lib/cmake")
+endif()
+
+if(WIN32)
+    set(NV_VIDEO_CODEC_SDK_LIB_CUVID "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvcuvid.lib")
+    set(NV_VIDEO_CODEC_SDK_LIB_ENCOD  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvencodeapi.lib")
+else()
+    set(NV_VIDEO_CODEC_SDK_LIB_CUVID "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64/libnvcuvid.so")
+    set(NV_VIDEO_CODEC_SDK_LIB_ENCOD  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64/libnvidia-encode.so")
 endif()
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
@@ -63,6 +61,11 @@ set(PROJECT_SOURCES
         NvDecoder.h
         glrender.h
         Logger.h
+        cuviddec.h
+        nvcuvid.h
+        nvEncodeAPI.h
+        NvCodecUtils.h
+        AppDecUtils.h
         mainwindow.ui
         ${TS_FILES}
 )
@@ -83,16 +86,12 @@ else()
             ${PROJECT_SOURCES}
         )
     endif()
-
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
 
 target_include_directories(EnhancedPlayer BEFORE PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-    ${NV_VIDEO_CODEC_SDK_INTERFACES}
-    ${NV_VIDEO_CODEC_SDK_UTILS_INCS}
-
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -101,8 +100,8 @@ target_link_libraries(EnhancedPlayer PRIVATE
     PkgConfig::LIBAV
     OpenGL::GL
     OpenGL::GLU
-    nvcuvid
-    nvidia-encode
+    ${NV_VIDEO_CODEC_SDK_LIB_CUVID}
+    ${NV_VIDEO_CODEC_SDK_LIB_ENCOD}
     cuda
     cudart
 )
