@@ -27,9 +27,12 @@ endif()
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 
+enable_language(CUDA)
+
 find_package(OpenGL REQUIRED)
 find_package(CUDA REQUIRED)
-enable_language(CUDA)
+find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+find_library(CUDA_LIBRARY cuda ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
 
 find_package(PkgConfig REQUIRED)
@@ -90,8 +93,9 @@ else()
 endif()
 
 
-target_include_directories(EnhancedPlayer BEFORE PRIVATE
+target_include_directories(EnhancedPlayer PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -102,8 +106,9 @@ target_link_libraries(EnhancedPlayer PRIVATE
     OpenGL::GLU
     ${NV_VIDEO_CODEC_SDK_LIB_CUVID}
     ${NV_VIDEO_CODEC_SDK_LIB_ENCOD}
-    cuda
-    cudart
+    ${CUDA_LIBRARY}
+    ${CUDART_LIBRARY}
+
 )
 
 

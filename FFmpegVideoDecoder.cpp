@@ -10,6 +10,17 @@
 #include <cuda_runtime.h>
 #include <QByteArray>
 
+/***
+ * A hint by Kef:
+ * You connect your decoder to QVideoSink class. It is used to send QVideoFrame to QVideoWidget.
+ * You need to check QVideoFrame class compatibility  with your frames and perhaps do additional transcoding.
+ * Basically, ffmpeg -> video sink -> (transcode if needed) -> convert your frame to qvideoframe
+ *
+ * example: https://stackoverflow.com/questions/69432427/how-to-use-qvideosink-in-qml-in-qt6
+ * complete example: https://github.com/eyllanesc/stackoverflow/tree/master/questions/69432427
+ */
+
+
 
 extern "C"
 {
@@ -83,8 +94,6 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 
 void FFmpegVideoDecoder::decode()
 {
-    nv_hw_dev = false;
-    bool_hw_accel = false;
 
     int nFrameReturned = 0, nFrame = 0;
     bool bDecodeOutSemiPlanar = false;
