@@ -1,5 +1,6 @@
 #include "FFmpegVideoDecoder.h"
 #include "AppDecUtils.h"
+#include "qvideoframe.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -9,7 +10,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <QByteArray>
-
+#include <QVideoFrameFormat>
+#include <QRandomGenerator>
 /***
  * A hint by Kef:
  * You connect your decoder to QVideoSink class. It is used to send QVideoFrame to QVideoWidget.
@@ -19,6 +21,21 @@
  * example: https://stackoverflow.com/questions/69432427/how-to-use-qvideosink-in-qml-in-qt6
  * complete example: https://github.com/eyllanesc/stackoverflow/tree/master/questions/69432427
  */
+
+
+QVideoSink *FFmpegVideoDecoder::videoSink() const
+{
+    return m_videoSink.get();
+}
+
+void FFmpegVideoDecoder::setVideoSink(QVideoSink* newVideoSink)
+{
+    if (m_videoSink == newVideoSink)
+        return;
+    m_videoSink = newVideoSink;
+    emit videoSinkChanged();
+}
+
 
 
 
@@ -95,6 +112,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 void FFmpegVideoDecoder::decode()
 {
 
+    nv_hw_dev = true;
     int nFrameReturned = 0, nFrame = 0;
     bool bDecodeOutSemiPlanar = false;
     uint8_t* pFrame;
@@ -299,7 +317,12 @@ void FFmpegVideoDecoder::decode()
         m_pPkt   = av_packet_alloc();
         while (av_read_frame(m_pIc, m_pPkt) >= 0){
             nFrameReturned = nv_dec->Decode(m_pPkt->data, m_pPkt->size);
-            bDecodeOutSemiPlanar = (nv_dec->GetOutputFormat() == cudaVideoSurfaceFormat_NV12) || (nv_dec->GetOutputFormat() == cudaVideoSurfaceFormat_YUV444);
+
+#if DEBUG
+            qDebug() << "Number of frames: " << nFrameReturned;
+#endif
+
+            bDecodeOutSemiPlanar = (nv_dec->GetOutputFormat() == cudaVideoSurfaceFormat_NV12) || (nv_dec->GetOutputFormat() == cudaVideoSurfaceFormat_P016);
             for (int i = 0; i < nFrameReturned; i++) {
                 pFrame = nv_dec->GetFrame();
                 if (true && bDecodeOutSemiPlanar) {
@@ -309,13 +332,18 @@ void FFmpegVideoDecoder::decode()
             if (nFrameReturned == 0)
                 m_pLastFrame = QImage(4, 4,  QImage::Format_RGB888);
             else{
-//                m_pLastFrame = QImage(nv_dec->GetWidth(), nv_dec->GetHeight(),  QImage::Format_ARGB4444_Premultiplied);
-//                for(int y=0; y < nv_dec->GetHeight(); y++)
-//                    memcpy(
-//                        m_pLastFrame.scanLine(y),
-//                        pFrame + y * nv_dec->GetHeight(),
-//                        nv_dec->GetWidth()*3
-//                        );
+                QVideoFrame video_frame(QVideoFrameFormat(QSize(nv_dec->GetWidth(), nv_dec->GetHeight()), QVideoFrameFormat::Format_NV12));
+                QImage::Format image_format = QVideoFrameFormat::imageFormatFromPixelFormat(video_frame.pixelFormat());
+
+
+
+
+                int plane = 0;
+                m_pLastFrame = QImage(video_frame.bits(plane), video_frame.width(),video_frame.height(), image_format);
+
+                m_pLastFrame.fill(QColor::fromRgb(QRandomGenerator::global()->generate()));;
+
+
 
             }
 

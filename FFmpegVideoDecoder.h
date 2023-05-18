@@ -2,9 +2,12 @@
 #define FFMPEGVIDEODECODER_H
 
 #include <QObject>
+#include <QPointer>
+#include <QtMultimedia/QVideoSink>
 #include <QImage>
 #include "NvCodecUtils.h"
 #include "NvDecoder.h"
+#include "qmediacapturesession.h"
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -26,6 +29,9 @@ class FFmpegVideoDecoder : public QObject
 public:
     explicit FFmpegVideoDecoder(QObject *parent = nullptr, QString rtsp_addr = "", bool hw_accel = false, bool nv_dev = false, QString HWdec_name = "dxva2");
     virtual ~FFmpegVideoDecoder() = default;
+    QVideoSink* videoSink() const;
+    void setVideoSink(QVideoSink *newVideoSink);
+
 
 public slots:
     void decode();
@@ -35,6 +41,7 @@ signals:
     void ReturnFrame(QImage img);
     void error(QString error);
     void infoDec(QString dec);
+    void videoSinkChanged();
 
 private:
     /**
@@ -72,6 +79,12 @@ private:
     // Hardware color range conversion
     SwsContext *m_pHWconversion;
     QString HWDec_name;
+
+    /**
+     * Video Sink implementation
+     */
+    QPointer<QVideoSink> m_videoSink;
+
 
 
 
