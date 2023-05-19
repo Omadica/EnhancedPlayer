@@ -31,6 +31,7 @@ private slots:
     void DrawGraph(QImage img);
     void PrintDecoderInfo(QString dec);
     void loadDecoders();
+    void TakePicture();
 
 signals:
     void readyForFrame();

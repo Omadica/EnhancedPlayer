@@ -16,8 +16,8 @@ void ZernikeTransform::transformFrame()
 {
     // Distortion_coefficients
     // Camera_Matrix
-    Mat image;
-    Mat undistortedImage;
+    cv::Mat image;
+    cv::Mat undistortedImage;
 
     cv::undistort(image, undistortedImage, Camera_Matrix, Distortion_coefficients);
 }

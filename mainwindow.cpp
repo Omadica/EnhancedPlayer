@@ -89,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      * @brief Rtsp connection, check if the URI is available
      */
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
+    connect(ui->btnTakePicture, SIGNAL(clicked(bool)), SLOT(TakePicture()));
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
 }
@@ -110,11 +111,17 @@ void MainWindow::loadDecoders()
     }
 }
 
+
+void MainWindow::TakePicture()
+{
+    m_FrameImage.save("snapshot.png");
+}
+
 void MainWindow::DrawGraph(QImage img)
 {
+    m_FrameImage = img;
     scene->clear();
     scene->addPixmap(QPixmap::fromImage(img));
-
 }
 
 void MainWindow::PrintDecoderInfo(QString dec)

@@ -15,7 +15,7 @@ if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "D:/opencv/build")
 else()
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.0/gcc_64/lib/cmake")
-    # list(APPEND CMAKE_PREFIX_PATH "")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/artifacts/opencv/build")
 endif()
 
 if(WIN32)

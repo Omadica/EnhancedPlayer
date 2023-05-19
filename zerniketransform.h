@@ -3,14 +3,11 @@
 #include "qtmetamacros.h"
 #include <string>
 #include <opencv2/opencv.hpp>
-#include <opencv2/opencv_modules.hpp>
-#include <opencv2//imgproc/imgproc.hpp>
+
 
 extern "C" {
 #include <libavcodec/avcodec.h>
-#include <opencv2/core/types_c.h>
 }
-
 
 
 class ZernikeTransform
@@ -33,8 +30,8 @@ private:
     /***
      * Image conversion
      */
-    void imageFromFrame(IplImage* image, AVFrame *frame);
-    void frameFromImage(AVFrame *frame, IplImage* image);
+//    void imageFromFrame(IplImage* image, AVFrame *frame);
+//    void frameFromImage(AVFrame *frame, IplImage* image);
 
     /***
      * Distorsions
@@ -50,8 +47,8 @@ private:
      */
     double calibrate();
     void estimationMatrixRectify();
-    Mat Camera_Matrix;
-    Mat Distortion_coefficients;
+    cv::Mat Camera_Matrix;
+    cv::Mat Distortion_coefficients;
 
 };
 
