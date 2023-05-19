@@ -12,8 +12,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.0/msvc2019_64/lib/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "D:/opencv/build")
 else()
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.0/gcc_64/lib/cmake")
+    # list(APPEND CMAKE_PREFIX_PATH "")
 endif()
 
 if(WIN32)
@@ -30,7 +32,10 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Mul
 enable_language(CUDA)
 
 find_package(OpenGL REQUIRED)
+find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
+
+
 find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 find_library(CUDA_LIBRARY cuda ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
@@ -57,6 +62,7 @@ set(PROJECT_SOURCES
         FFmpegVideoDecoder.cpp
         NvDecoder.cpp
         glrender.cpp
+        zerniketransform.cpp
         mainwindow.h
         custom_view.h
         FFmpegLog.h
@@ -69,6 +75,7 @@ set(PROJECT_SOURCES
         nvEncodeAPI.h
         NvCodecUtils.h
         AppDecUtils.h
+        zerniketransform.h
         mainwindow.ui
         ${TS_FILES}
 )
@@ -95,7 +102,7 @@ endif()
 
 target_include_directories(EnhancedPlayer PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-
+    ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -108,7 +115,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     ${NV_VIDEO_CODEC_SDK_LIB_ENCOD}
     ${CUDA_LIBRARY}
     ${CUDART_LIBRARY}
-
+    ${OpenCV_LIBS}
 )
 
 

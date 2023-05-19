@@ -76,7 +76,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>10.31.7.126</string>
+           <string>10.31.4.78</string>
           </property>
          </widget>
          <widget class="QLabel" name="label">

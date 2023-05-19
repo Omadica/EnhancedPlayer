@@ -12,6 +12,8 @@
 #include <QByteArray>
 #include <QVideoFrameFormat>
 #include <QRandomGenerator>
+
+
 /***
  * A hint by Kef:
  * You connect your decoder to QVideoSink class. It is used to send QVideoFrame to QVideoWidget.
@@ -112,7 +114,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 void FFmpegVideoDecoder::decode()
 {
 
-    nv_hw_dev = true;
+    nv_hw_dev = false;
     int nFrameReturned = 0, nFrame = 0;
     bool bDecodeOutSemiPlanar = false;
     uint8_t* pFrame;
