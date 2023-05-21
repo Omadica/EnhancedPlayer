@@ -6,6 +6,7 @@
 #include <QThreadPool>
 #include <QGraphicsScene>
 #include "FFmpegVideoDecoder.h"
+#include "zerniketransform.h"
 
 extern "C"
 {
@@ -43,7 +44,10 @@ private:
     QImage m_FrameImage;
     FFmpegVideoDecoder* decoder;
     QString rtsp_addr;
+    QString namePic;
     QGraphicsScene *scene;
+    int numPic;
+    ZernikeTransform* ZerTrans;
 
 
 

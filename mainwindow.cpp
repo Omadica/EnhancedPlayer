@@ -82,6 +82,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
 
+    numPic = 1;
+    namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
+    ui->textSave->setText(namePic);
 
 
 
@@ -92,6 +95,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnTakePicture, SIGNAL(clicked(bool)), SLOT(TakePicture()));
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
+
+//    ZerTrans = new ZernikeTransform();
+//    ZerTrans->transformFrame();
+
+
 }
 
 MainWindow::~MainWindow()
@@ -114,7 +122,10 @@ void MainWindow::loadDecoders()
 
 void MainWindow::TakePicture()
 {
-    m_FrameImage.save("snapshot.png");
+    m_FrameImage.save(namePic);
+    numPic++;
+    namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
+    ui->textSave->setText(namePic);
 }
 
 void MainWindow::DrawGraph(QImage img)

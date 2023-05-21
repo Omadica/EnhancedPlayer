@@ -1,5 +1,8 @@
 #include "FFmpegVideoDecoder.h"
 #include "AppDecUtils.h"
+#include "opencv2/calib3d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
 #include "qvideoframe.h"
 #include <fstream>
 #include <iostream>
@@ -12,6 +15,7 @@
 #include <QByteArray>
 #include <QVideoFrameFormat>
 #include <QRandomGenerator>
+#include <opencv2/core.hpp>
 
 
 /***
@@ -23,6 +27,67 @@
  * example: https://stackoverflow.com/questions/69432427/how-to-use-qvideosink-in-qml-in-qt6
  * complete example: https://github.com/eyllanesc/stackoverflow/tree/master/questions/69432427
  */
+
+
+//************************************
+// Method:    avframeToCvmat
+// Access:    public
+// Returns:   cv::Mat
+// Qualifier:
+// Parameter: const AVFrame * frame
+//************************************
+cv::Mat avframeToCvmat(const AVFrame *frame) {
+    int width = frame->width;
+    int height = frame->height;
+    cv::Mat image(height, width, CV_8UC3);
+    int cvLinesizes[1];
+    cvLinesizes[0] = image.step1();
+    SwsContext *conversion = sws_getContext(
+        width, height, (AVPixelFormat)frame->format, width, height,
+        AVPixelFormat::AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+    sws_scale(conversion, frame->data, frame->linesize, 0, height, &image.data,
+              cvLinesizes);
+    sws_freeContext(conversion);
+    return image;
+}
+
+//************************************
+// Method:    cvmatToAvframe
+// Access:    public
+// Returns:   AVFrame *
+// Qualifier:
+// Parameter: cv::Mat * image
+// Parameter: AVFrame * frame
+//************************************
+AVFrame *cvmatToAvframe(cv::Mat *image, AVFrame *frame) {
+    int width = image->cols;
+    int height = image->rows;
+    int cvLinesizes[1];
+    cvLinesizes[0] = image->step1();
+    if (frame == NULL) {
+        frame = av_frame_alloc();
+        av_image_alloc(frame->data, frame->linesize, width, height,
+                       AVPixelFormat::AV_PIX_FMT_YUV420P, 1);
+    }
+    SwsContext *conversion = sws_getContext(
+        width, height,
+        AVPixelFormat::AV_PIX_FMT_BGR24,
+        width, height,
+        (AVPixelFormat)frame->format,
+        SWS_FAST_BILINEAR,
+        NULL, NULL, NULL
+        );
+    sws_scale(conversion,
+              &image->data,
+              cvLinesizes,
+              0,
+              height,
+              frame->data,
+              frame->linesize);
+    sws_freeContext(conversion);
+    return frame;
+}
+
 
 
 QVideoSink *FFmpegVideoDecoder::videoSink() const
@@ -113,6 +178,22 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 
 void FFmpegVideoDecoder::decode()
 {
+
+    cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
+
+    cv::Mat cameraMat;
+    cv::Mat dcoeff;
+    cv::Mat RMat;
+    cv::Mat TMat;
+
+    file_read["cameraMat"] >> cameraMat;
+    file_read["distCoeffs"] >> dcoeff;
+    file_read["Rvec"] >> RMat;
+    file_read["Tvec"] >> TMat;
+
+    file_read.release();
+
+    cv::Mat new_frame;
 
     nv_hw_dev = false;
     int nFrameReturned = 0, nFrame = 0;
@@ -217,7 +298,7 @@ void FFmpegVideoDecoder::decode()
         m_pImg_conversion = sws_getContext
             (m_pFrame_converted->width,
              m_pFrame_converted->height,
-             AV_PIX_FMT_YUV420P,
+             AV_PIX_FMT_BGR24,
              m_pFrame_converted->width,
              m_pFrame_converted->height,
              AV_PIX_FMT_RGB24,
@@ -278,17 +359,22 @@ void FFmpegVideoDecoder::decode()
                                       m_pFrame_converted->linesize
                                       );
                         } else {
+
+                            cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);
+                            cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
+                            int cvLinesizes[1];
+                            cvLinesizes[0] = new_frame.step1();
                             sws_scale(m_pImg_conversion,
-                                      m_pOutFrame->data,
-                                      m_pOutFrame->linesize,
+                                      &new_frame.data,
+                                      cvLinesizes,
                                       0,
                                       m_pOutFrame->height,
                                       m_pFrame_converted->data,
                                       m_pFrame_converted->linesize
                                       );
+                            new_frame.deallocate();
+
                         }
-
-
                         for(int y=0; y < m_pFrame_converted->height; y++)
                             memcpy(
                                 m_pLastFrame.scanLine(y),
