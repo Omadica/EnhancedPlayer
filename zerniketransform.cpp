@@ -161,13 +161,15 @@ void ZernikeTransform::transformFrame()
 
 
     cv::calibrateCamera(objPoints, imgPoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T);
-    cv::FileStorage file("cameraCalibration.ext", cv::FileStorage::WRITE);
+    cv::FileStorage file("cameraCalibration2.ext", cv::FileStorage::WRITE);
 
 
     file << "cameraMat" << cameraMatrix;
     file << "distCoeffs" << distCoeffs;
     file << "Rvec" << R;
     file << "Tvec" << T;
+    file << "map1" << objPoints;
+    file << "map2" << imgPoints;
 
     file.release();
 

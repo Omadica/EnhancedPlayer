@@ -179,7 +179,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 void FFmpegVideoDecoder::decode()
 {
 
-    cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
+    cv::FileStorage file_read("cameraCalibration2.ext", cv::FileStorage::READ);
 
     cv::Mat cameraMat;
     cv::Mat dcoeff;
@@ -192,8 +192,6 @@ void FFmpegVideoDecoder::decode()
     file_read["Tvec"] >> TMat;
 
     file_read.release();
-
-    cv::Mat new_frame;
 
     nv_hw_dev = false;
     int nFrameReturned = 0, nFrame = 0;
@@ -360,8 +358,10 @@ void FFmpegVideoDecoder::decode()
                                       );
                         } else {
 
+                            cv::Mat new_frame;
                             cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);
                             cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
+                            //cv::remap(raw_frame, new_frame, cameraMat, cameraMat, 1);
                             int cvLinesizes[1];
                             cvLinesizes[0] = new_frame.step1();
                             sws_scale(m_pImg_conversion,
@@ -373,6 +373,15 @@ void FFmpegVideoDecoder::decode()
                                       m_pFrame_converted->linesize
                                       );
                             new_frame.deallocate();
+                            raw_frame.deallocate();
+//                            sws_scale(m_pImg_conversion,
+//                                      m_pOutFrame->data,
+//                                      m_pOutFrame->linesize,
+//                                      0,
+//                                      m_pOutFrame->height,
+//                                      m_pFrame_converted->data,
+//                                      m_pFrame_converted->linesize
+//                                      );
 
                         }
                         for(int y=0; y < m_pFrame_converted->height; y++)

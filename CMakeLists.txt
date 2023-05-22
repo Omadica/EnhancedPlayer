@@ -21,10 +21,13 @@ endif()
 if(WIN32)
     set(NV_VIDEO_CODEC_SDK_LIB_CUVID "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvcuvid.lib")
     set(NV_VIDEO_CODEC_SDK_LIB_ENCOD  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvencodeapi.lib")
+    set(FISH_EYE_DC_LIB  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Fishye_SDK_V1003/lib_dll/x64-normal/FishEye.lib")
 else()
     set(NV_VIDEO_CODEC_SDK_LIB_CUVID "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64/libnvcuvid.so")
     set(NV_VIDEO_CODEC_SDK_LIB_ENCOD  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64/libnvidia-encode.so")
 endif()
+
+set(FISH_EYE_DC_INCS  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Fishye_SDK_V1003/include")
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
@@ -103,6 +106,7 @@ endif()
 target_include_directories(EnhancedPlayer PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${OpenCV_INCLUDE_DIRS}
+    ${FISH_EYE_DC_INCS}
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -116,6 +120,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     ${CUDA_LIBRARY}
     ${CUDART_LIBRARY}
     ${OpenCV_LIBS}
+    ${FISH_EYE_DC_LIB}
 )
 
 
