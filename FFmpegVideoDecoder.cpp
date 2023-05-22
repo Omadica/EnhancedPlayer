@@ -29,6 +29,9 @@
  */
 
 
+// Rotate cameraMatrix
+// https://stackoverflow.com/questions/37117939/transform-a-frame-to-be-as-if-it-was-taken-from-above-using-opencv
+
 //************************************
 // Method:    avframeToCvmat
 // Access:    public
@@ -179,7 +182,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 void FFmpegVideoDecoder::decode()
 {
 
-    cv::FileStorage file_read("cameraCalibration2.ext", cv::FileStorage::READ);
+    cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
 
     cv::Mat cameraMat;
     cv::Mat dcoeff;
@@ -190,6 +193,10 @@ void FFmpegVideoDecoder::decode()
     file_read["distCoeffs"] >> dcoeff;
     file_read["Rvec"] >> RMat;
     file_read["Tvec"] >> TMat;
+    cv::Mat map1;
+    cv::Mat map2;
+    cv::Mat new_cam;
+
 
     file_read.release();
 
@@ -200,12 +207,21 @@ void FFmpegVideoDecoder::decode()
     int ret = 0;
     ret = avformat_open_input(&m_pIc, rtsp_addr.toStdString().c_str(), NULL, NULL);
 
+
     if (ret < 0)
         qDebug() << "Error to create AvFormatContext";
 
     ret = avformat_find_stream_info(m_pIc, NULL);
 
     ret = av_read_play(m_pIc);
+    cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
+
+
+    cv::Mat out1, out2, out3, out4, out5;
+    // cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
+    // cv::initUndistortRectifyMap(cameraMat, dcoeff, RMat, cameraMat,  cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height), CV_32FC1, map1, map2);
+    // cv::stereoRectify(cameraMat, dcoeff, cv::getOptimalNewCameraMatrix(cameraMat, dcoeff, imgSize, 0.7, imgSize, 0), cv::Mat(), imgSize, RMat, TMat, out1, out2, out3, out4, out5);
+    cv::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cv::getOptimalNewCameraMatrix(cameraMat, dcoeff, imgSize, 0.7, imgSize, 0), imgSize, CV_16SC2, map1, map2);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
@@ -360,8 +376,8 @@ void FFmpegVideoDecoder::decode()
 
                             cv::Mat new_frame;
                             cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);
-                            cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
-                            //cv::remap(raw_frame, new_frame, cameraMat, cameraMat, 1);
+
+                            cv::remap(raw_frame, new_frame, map1, map2, cv::INTER_LINEAR);
                             int cvLinesizes[1];
                             cvLinesizes[0] = new_frame.step1();
                             sws_scale(m_pImg_conversion,
