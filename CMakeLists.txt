@@ -66,6 +66,10 @@ set(PROJECT_SOURCES
         NvDecoder.cpp
         glrender.cpp
         zerniketransform.cpp
+        quaternions.cpp
+        math_sf.cpp
+        sys_utils.cpp
+        sys_env.cpp
         mainwindow.h
         custom_view.h
         FFmpegLog.h
@@ -79,6 +83,10 @@ set(PROJECT_SOURCES
         NvCodecUtils.h
         AppDecUtils.h
         zerniketransform.h
+        quaternions.h
+        math_sf.h
+        sys_utils.h
+        sys_env.h
         mainwindow.ui
         ${TS_FILES}
 )

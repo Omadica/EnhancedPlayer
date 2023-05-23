@@ -17,7 +17,6 @@
 #include <QRandomGenerator>
 #include <opencv2/core.hpp>
 
-
 /***
  * A hint by Kef:
  * You connect your decoder to QVideoSink class. It is used to send QVideoFrame to QVideoWidget.
@@ -157,7 +156,8 @@ FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, QString rtsp, bool hw_ac
     m_pIc(nullptr),
     m_pStream(nullptr),
     nv_dec(nullptr),
-    cuContext(nullptr)
+    cuContext(nullptr),
+    m_stopDecoding(false)
 {
     qDebug() << HWdec_name.toStdString().c_str();
 }
@@ -185,18 +185,20 @@ void FFmpegVideoDecoder::decode()
     cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
 
     cv::Mat cameraMat;
+    cv::Mat newCameraMat;
     cv::Mat dcoeff;
     cv::Mat RMat;
     cv::Mat TMat;
 
     file_read["cameraMat"] >> cameraMat;
+    file_read["newCameraMat"] >> newCameraMat;
     file_read["distCoeffs"] >> dcoeff;
     file_read["Rvec"] >> RMat;
     file_read["Tvec"] >> TMat;
     cv::Mat map1;
     cv::Mat map2;
     cv::Mat new_cam;
-
+    cv::Mat cameraRotated;
 
     file_read.release();
 
@@ -215,13 +217,11 @@ void FFmpegVideoDecoder::decode()
 
     ret = av_read_play(m_pIc);
     cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
-
-
-    cv::Mat out1, out2, out3, out4, out5;
+    // cv::Mat out1, out2, out3, out4, out5;
     // cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
     // cv::initUndistortRectifyMap(cameraMat, dcoeff, RMat, cameraMat,  cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height), CV_32FC1, map1, map2);
     // cv::stereoRectify(cameraMat, dcoeff, cv::getOptimalNewCameraMatrix(cameraMat, dcoeff, imgSize, 0.7, imgSize, 0), cv::Mat(), imgSize, RMat, TMat, out1, out2, out3, out4, out5);
-    cv::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cv::getOptimalNewCameraMatrix(cameraMat, dcoeff, imgSize, 0.7, imgSize, 0), imgSize, CV_16SC2, map1, map2);
+    cv::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cameraMat, imgSize, CV_16SC2, map1, map2);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
@@ -339,6 +339,8 @@ void FFmpegVideoDecoder::decode()
         int frames = 0;
         while(av_read_frame(m_pIc, m_pPkt) >= 0)
         {
+            if(m_stopDecoding)
+                break;
             if(m_pPkt->stream_index == AVMEDIA_TYPE_VIDEO)
             {
                 m_pPkt->stream_index = m_pIc->streams[0]->id;
@@ -373,11 +375,15 @@ void FFmpegVideoDecoder::decode()
                                       m_pFrame_converted->linesize
                                       );
                         } else {
-
                             cv::Mat new_frame;
-                            cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);
+                            cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);;
 
-                            cv::remap(raw_frame, new_frame, map1, map2, cv::INTER_LINEAR);
+
+
+                            cv::remap(raw_frame, new_frame, map1, map2,  cv::INTER_NEAREST);
+
+                            // cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
+
                             int cvLinesizes[1];
                             cvLinesizes[0] = new_frame.step1();
                             sws_scale(m_pImg_conversion,
@@ -388,17 +394,8 @@ void FFmpegVideoDecoder::decode()
                                       m_pFrame_converted->data,
                                       m_pFrame_converted->linesize
                                       );
-                            new_frame.deallocate();
-                            raw_frame.deallocate();
-//                            sws_scale(m_pImg_conversion,
-//                                      m_pOutFrame->data,
-//                                      m_pOutFrame->linesize,
-//                                      0,
-//                                      m_pOutFrame->height,
-//                                      m_pFrame_converted->data,
-//                                      m_pFrame_converted->linesize
-//                                      );
-
+                            new_frame.release();
+                            raw_frame.release();
                         }
                         for(int y=0; y < m_pFrame_converted->height; y++)
                             memcpy(
@@ -426,7 +423,7 @@ void FFmpegVideoDecoder::decode()
                 av_frame_unref(m_pSWFrame);
             av_frame_unref(m_pOutFrame);
         }
-    } else {
+            } else {
         m_pPkt   = av_packet_alloc();
         while (av_read_frame(m_pIc, m_pPkt) >= 0){
             nFrameReturned = nv_dec->Decode(m_pPkt->data, m_pPkt->size);
@@ -469,5 +466,12 @@ void FFmpegVideoDecoder::decode()
             emit ReturnFrame(m_pLastFrame);
             nFrame += nFrameReturned;
         }
+
     }
+}
+
+void FFmpegVideoDecoder::stopDecoding()
+{
+    m_stopDecoding = true;
+    qDebug() << "settato m_stopDecoding = true";
 }
