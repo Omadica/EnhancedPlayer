@@ -23,7 +23,12 @@ extern "C"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/bsf.h>
+#include <libavfilter/avfilter.h>
 }
+
+
+
+
 
 std::unordered_map<AVCodecID, QString> Supported_codec = {
     {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
@@ -95,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnTakePicture, SIGNAL(clicked(bool)), SLOT(TakePicture()));
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
+    connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
@@ -119,6 +125,12 @@ void MainWindow::loadDecoders()
     }
 }
 
+void MainWindow::resetDecoder()
+{
+    decoder->deleteLater();
+    emit stopDecodingThread();
+
+}
 
 void MainWindow::TakePicture()
 {
@@ -196,6 +208,10 @@ void MainWindow::StartPlayback()
     decoder->moveToThread(thread);
     connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
+
+    //connect(this, SIGNAL(stopDecodingThread()), decoder, SLOT(stopDecoding()));
+
+    connect(this, SIGNAL(stopDecodingThread()), thread, SLOT(exit(0)));
 
     thread->start();
 

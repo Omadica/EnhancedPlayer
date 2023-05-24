@@ -144,8 +144,8 @@ void ZernikeTransform::transformFrame()
             imgPoints.push_back(corner_pts);
         }
 
-//        cv::imshow("Image",frame);
-//        cv::waitKey(0);
+        cv::imshow("Image",frame);
+        cv::waitKey(0);
     }
 
     cv::destroyAllWindows();
@@ -159,12 +159,14 @@ void ZernikeTransform::transformFrame()
     * detected corners (imgpoints)
     */
 
-
-    cv::calibrateCamera(objPoints, imgPoints, cv::Size(gray.rows,gray.cols), cameraMatrix, distCoeffs, R, T);
-    cv::FileStorage file("cameraCalibration2.ext", cv::FileStorage::WRITE);
+    cv::Size ImgSize = cv::Size(gray.rows, gray.cols);
+    cv::calibrateCamera(objPoints, imgPoints, ImgSize, cameraMatrix, distCoeffs, R, T);
+    cv::FileStorage file("cameraCalibration.ext", cv::FileStorage::WRITE);
+    cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, ImgSize, 0.7, ImgSize);
 
 
     file << "cameraMat" << cameraMatrix;
+    file << "newCameraMat" << newCameraMatrix;
     file << "distCoeffs" << distCoeffs;
     file << "Rvec" << R;
     file << "Tvec" << T;

@@ -33,9 +33,11 @@ private slots:
     void PrintDecoderInfo(QString dec);
     void loadDecoders();
     void TakePicture();
+    void resetDecoder();
 
 signals:
     void readyForFrame();
+    void stopDecodingThread();
 
 
 private:

@@ -35,6 +35,7 @@ public:
 
 public slots:
     void decode();
+    void stopDecoding();
 
 signals:
     void finished();
@@ -44,6 +45,7 @@ signals:
     void videoSinkChanged();
 
 private:
+    bool m_stopDecoding;
     /**
      * @brief m_pImg_conversion sws_context for color range conversion
      */
