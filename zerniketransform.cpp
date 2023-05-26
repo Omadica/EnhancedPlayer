@@ -132,10 +132,10 @@ void ZernikeTransform::transformFrame()
         if(success)
         {
             std::cout << "Found chessboard in: " << images[i] << std::endl;
-            cv::TermCriteria criteria(cv::TermCriteria::EPS | cv::TermCriteria::MAX_ITER, 30, 0.001);
+            cv::TermCriteria criteria(cv::TermCriteria::EPS | cv::TermCriteria::MAX_ITER, 30, 1e-6);
 
             // refining pixel coordinates for given 2d points.
-            cv::cornerSubPix(gray,corner_pts,cv::Size(11,11), cv::Size(-1,-1),criteria);
+            cv::cornerSubPix(gray, corner_pts, cv::Size(11,11), cv::Size(-1,-1), criteria);
 
             // Displaying the detected corner points on the checker board
             cv::drawChessboardCorners(frame, cv::Size(BOARD[0], BOARD[1]), corner_pts, success);
@@ -144,13 +144,13 @@ void ZernikeTransform::transformFrame()
             imgPoints.push_back(corner_pts);
         }
 
-        cv::imshow("Image",frame);
-        cv::waitKey(0);
+//        cv::imshow("Image",frame);
+//        cv::waitKey(0);
     }
 
     cv::destroyAllWindows();
 
-    cv::Mat cameraMatrix,distCoeffs,R,T;
+    cv::Mat cameraMatrix, distCoeffs, R, T, newCameraMatrix;
 
     /*
     * Performing camera calibration by
@@ -160,9 +160,11 @@ void ZernikeTransform::transformFrame()
     */
 
     cv::Size ImgSize = cv::Size(gray.rows, gray.cols);
-    cv::calibrateCamera(objPoints, imgPoints, ImgSize, cameraMatrix, distCoeffs, R, T);
+    cv::fisheye::calibrate(objPoints, imgPoints, ImgSize, cameraMatrix, distCoeffs, R, T);
     cv::FileStorage file("cameraCalibration.ext", cv::FileStorage::WRITE);
-    cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, ImgSize, 0.7, ImgSize);
+
+    //cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, ImgSize, 0.7, ImgSize);
+    //cv::fisheye::estimateNewCameraMatrixForUndistortRectify(cameraMatrix, distCoeffs, ImgSize, R, newCameraMatrix);
 
 
     file << "cameraMat" << cameraMatrix;
@@ -176,28 +178,28 @@ void ZernikeTransform::transformFrame()
     file.release();
 
 
-    cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
+//    cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
 
-    cv::Mat cameraMat;
-    cv::Mat dcoeff;
-    cv::Mat RMat;
-    cv::Mat TMat;
+//    cv::Mat cameraMat;
+//    cv::Mat dcoeff;
+//    cv::Mat RMat;
+//    cv::Mat TMat;
 
-    file_read["cameraMat"] >> cameraMat;
-    file_read["distCoeffs"] >> dcoeff;
-    file_read["Rvec"] >> RMat;
-    file_read["Tvec"] >> TMat;
+//    file_read["cameraMat"] >> cameraMat;
+//    file_read["distCoeffs"] >> dcoeff;
+//    file_read["Rvec"] >> RMat;
+//    file_read["Tvec"] >> TMat;
 
-    file_read.release();
+//    file_read.release();
 
-    cv::Mat new_frame;
+//    cv::Mat new_frame;
 
-    for(auto &it : images){
-        frame = cv::imread(it);
-        cv::undistort(frame, new_frame, cameraMat, dcoeff, cameraMat);
-        cv::imwrite(cv::String("/tmp/") + it, new_frame);
-        //cv::imshow("Undistorted image", new_frame);
-        //cv::waitKey(0);
-    }
+//    for(auto &it : images){
+//        frame = cv::imread(it);
+//        cv::undistort(frame, new_frame, cameraMat, dcoeff, cameraMat);
+//        cv::imwrite(cv::String("/tmp/") + it, new_frame);
+//        //cv::imshow("Undistorted image", new_frame);
+//        //cv::waitKey(0);
+//    }
 
 }
