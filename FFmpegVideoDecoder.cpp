@@ -221,9 +221,7 @@ void FFmpegVideoDecoder::decode()
     // cv::initUndistortRectifyMap(cameraMat, dcoeff, RMat, cameraMat,  cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height), CV_32FC1, map1, map2);
     // cv::stereoRectify(cameraMat, dcoeff, cv::getOptimalNewCameraMatrix(cameraMat, dcoeff, imgSize, 0.7, imgSize, 0), cv::Mat(), imgSize, RMat, TMat, out1, out2, out3, out4, out5);
     cv::fisheye::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cameraMat, imgSize, CV_16SC2, map1, map2);
-    // cv::fisheye::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cameraMat, imgSize, CV_16SC2, map1, map2);
-//    cv::rotate(map1, map1, cv::ROTATE_90_CLOCKWISE);
-//    cv::rotate(map2, map2, cv::ROTATE_90_CLOCKWISE);
+    // cv::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cameraMat, imgSize, CV_16SC2, map1, map2);
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 

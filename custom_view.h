@@ -5,6 +5,8 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QWheelEvent>
+#include <QList>
+#include <QRect>
 
 class custom_view : public QGraphicsView
 {
@@ -15,7 +17,17 @@ public:
 
 protected:
     virtual void wheelEvent(QWheelEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+
     using QGraphicsView::QGraphicsView;
+
+private:
+    QList<QRect> rects;
+    bool m_bIsMousePressed;
+    QPoint topLeft;
+    QPoint bottomRight;
 
 
 };

@@ -101,9 +101,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
+    connect(ui->graphicsView, SIGNAL(clicked()), ui->graphicsView, SLOT(mousePressEvent()));
 
-    ZerTrans = new ZernikeTransform();
-    ZerTrans->transformFrame();
+//    ZerTrans = new ZernikeTransform();
+//    ZerTrans->transformFrame();
 
 
 }
