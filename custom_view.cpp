@@ -38,7 +38,8 @@ void custom_view::mousePressEvent(QMouseEvent *event)
     {
         m_bIsMousePressed = true;
         topLeft = this->viewport()->mapFromGlobal(pos);
+
     }
-
-
 }
+
+
