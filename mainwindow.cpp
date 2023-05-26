@@ -102,8 +102,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
 
-//    ZerTrans = new ZernikeTransform();
-//    ZerTrans->transformFrame();
+    ZerTrans = new ZernikeTransform();
+    ZerTrans->transformFrame();
 
 
 }
