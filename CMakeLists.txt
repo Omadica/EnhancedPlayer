@@ -70,6 +70,7 @@ set(PROJECT_SOURCES
         math_sf.cpp
         sys_utils.cpp
         sys_env.cpp
+        scribble.cpp
         mainwindow.h
         custom_view.h
         FFmpegLog.h
@@ -87,6 +88,7 @@ set(PROJECT_SOURCES
         math_sf.h
         sys_utils.h
         sys_env.h
+        scribble.h
         mainwindow.ui
         ${TS_FILES}
 )

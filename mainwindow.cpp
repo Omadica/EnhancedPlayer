@@ -2,7 +2,6 @@
 #include <QMediaCaptureSession>
 #include <QCameraDevice>
 #include <QListView>
-#include <QPainter>
 #include <QPixmap>
 #include <QIcon>
 #include <QTimer>
@@ -80,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
     }
 
-    QIcon p = QIcon(QPixmap::fromImage(QImage(4, 4, QImage::Format_RGB888)));
+    QIcon p = QIcon(QPixmap::fromImage(QImage(16, 16 , QImage::Format_RGB888)));
     this->setWindowIcon(p);
 
     /**/
@@ -101,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
-    connect(ui->graphicsView, SIGNAL(clicked()), ui->graphicsView, SLOT(mousePressEvent()));
+    // connect(ui->graphicsView, SIGNAL(clicked()), ui->graphicsView, SLOT(mousePressEvent()));
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();

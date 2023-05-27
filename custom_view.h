@@ -21,14 +21,11 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
-    using QGraphicsView::QGraphicsView;
-
 private:
     QList<QRect> rects;
     bool m_bIsMousePressed;
     QPoint topLeft;
     QPoint bottomRight;
-
 
 };
 
