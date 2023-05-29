@@ -3,7 +3,7 @@
 #include <QModelIndex>
 #include <QMenu>
 
-custom_view::custom_view(QWidget *parent) : QGraphicsView(parent)
+custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePressed(false)
 {
 
 }

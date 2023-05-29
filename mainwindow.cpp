@@ -25,16 +25,11 @@ extern "C"
 #include <libavfilter/avfilter.h>
 }
 
-
-
-
-
 std::unordered_map<AVCodecID, QString> Supported_codec = {
     {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
     {AV_CODEC_ID_H264, QString("AV1(H264)")},
     {AV_CODEC_ID_MJPEG, QString("MJPEG")},
 };
-
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -47,8 +42,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      * @brief Set-up the user interface
      */
     ui->setupUi(this);
-
-
 
     /**
      * check Nvidia device(s) (The device search has to be improved)
@@ -90,8 +83,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
     ui->textSave->setText(namePic);
 
-
-
     /**
      * @brief Rtsp connection, check if the URI is available
      */
@@ -100,7 +91,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
-    // connect(ui->graphicsView, SIGNAL(clicked()), ui->graphicsView, SLOT(mousePressEvent()));
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
@@ -208,10 +198,7 @@ void MainWindow::StartPlayback()
     decoder->moveToThread(thread);
     connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
     connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
-
-    //connect(this, SIGNAL(stopDecodingThread()), decoder, SLOT(stopDecoding()));
-
-    connect(this, SIGNAL(stopDecodingThread()), thread, SLOT(exit(0)));
+    connect(this, SIGNAL(stopDecodingThread()), thread, SLOT(quit()));
 
     thread->start();
 
