@@ -57,46 +57,57 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 
 set(TS_FILES EnhancedPlayer_it_IT.ts )
 
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        custom_view.cpp
-        FFmpegLog.cpp
-        FFmpegVideoDecoder.cpp
-        NvDecoder.cpp
-        glrender.cpp
-        zerniketransform.cpp
-        quaternions.cpp
-        math_sf.cpp
-        sys_utils.cpp
-        sys_env.cpp
-        scribble.cpp
-        mainwindow.h
-        custom_view.h
-        FFmpegLog.h
-        FFmpegVideoDecoder.h
-        NvDecoder.h
-        glrender.h
-        Logger.h
-        cuviddec.h
-        nvcuvid.h
-        nvEncodeAPI.h
-        NvCodecUtils.h
-        AppDecUtils.h
-        zerniketransform.h
-        quaternions.h
-        math_sf.h
-        sys_utils.h
-        sys_env.h
-        scribble.h
-        mainwindow.ui
-        ${TS_FILES}
-)
+file (GLOB PROJECT_SOURCES PROJECT_HEADERS PROJECT_FORMS PROJECT_TR
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.ts
+   )
+
+
+# set(PROJECT_SOURCES
+#         main.cpp
+#         mainwindow.cpp
+#         custom_view.cpp
+#         FFmpegLog.cpp
+#         FFmpegVideoDecoder.cpp
+#         NvDecoder.cpp
+#         glrender.cpp
+#         zerniketransform.cpp
+#         quaternions.cpp
+#         math_sf.cpp
+#         sys_utils.cpp
+#         sys_env.cpp
+#         scribble.cpp
+#         mainwindow.h
+#         custom_view.h
+#         FFmpegLog.h
+#         FFmpegVideoDecoder.h
+#         NvDecoder.h
+#         glrender.h
+#         Logger.h
+#         cuviddec.h
+#         nvcuvid.h
+#         nvEncodeAPI.h
+#         NvCodecUtils.h
+#         AppDecUtils.h
+#         zerniketransform.h
+#         quaternions.h
+#         math_sf.h
+#         sys_utils.h
+#         sys_env.h
+#         scribble.h
+#         mainwindow.ui
+#         ${TS_FILES}
+# )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(EnhancedPlayer
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${PROJECT_HEADERS}
+        ${PROJECT_FORMS}
+        ${PROJECT_TR}
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()

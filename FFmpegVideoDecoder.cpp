@@ -181,6 +181,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
 
 void FFmpegVideoDecoder::decode()
 {
+    /*
     cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
 
     cv::Mat cameraMat;
@@ -200,6 +201,7 @@ void FFmpegVideoDecoder::decode()
     cv::Mat cameraRotated;
 
     file_read.release();
+    */
 
     nv_hw_dev = false;
     int nFrameReturned = 0, nFrame = 0;
@@ -215,7 +217,7 @@ void FFmpegVideoDecoder::decode()
     ret = avformat_find_stream_info(m_pIc, NULL);
 
     ret = av_read_play(m_pIc);
-    cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
+    // cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
     // cv::Mat out1, out2, out3, out4, out5;
     // cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
     // cv::initUndistortRectifyMap(cameraMat, dcoeff, RMat, cameraMat,  cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height), CV_32FC1, map1, map2);
@@ -372,10 +374,12 @@ void FFmpegVideoDecoder::decode()
                         cv::Mat new_frame;
                         cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);;
 
-
-                        // cv::remap(raw_frame, new_frame, map1, map2,  cv::INTER_NEAREST);
+                        new_frame = raw_frame;
+                        /*
+                        cv::remap(raw_frame, new_frame, map1, map2,  cv::INTER_NEAREST);
                         cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, newCameraMat);
-                        // cv::fisheye::undistortImage(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
+                        cv::fisheye::undistortImage(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
+                        */
 
                         int cvLinesizes[1];
                         cvLinesizes[0] = new_frame.step1();

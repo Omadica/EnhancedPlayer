@@ -17,6 +17,11 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "opencv2/calib3d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/core.hpp"
+
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -132,6 +137,7 @@ void MainWindow::TakePicture()
 
 void MainWindow::DrawGraph(QImage img)
 {
+    
     m_FrameImage = img;
     scene->clear();
     scene->addPixmap(QPixmap::fromImage(img));
