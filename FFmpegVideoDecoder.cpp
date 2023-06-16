@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <math.h>
 #include <string>
 #include <QDebug>
 #include <QLabel>
@@ -178,30 +179,38 @@ static enum AVPixelFormat get_hw_format(AVCodecContext *ctx, const enum AVPixelF
     return AV_PIX_FMT_NONE;
 }
 
+void computeC2MC1(const cv::Mat &R1, const cv::Mat &tvec1, const cv::Mat &R2, const cv::Mat &tvec2,
+                  cv::Mat &R_1to2, cv::Mat &tvec_1to2)
+{
+    //c2Mc1 = c2Mo * oMc1 = c2Mo * c1Mo.inv()
+    R_1to2 = R2 * R1.t();
+    tvec_1to2 = R2 * (-R1.t()*tvec1) + tvec2;
+}
+
+cv::Mat computeHomography(const cv::Mat &R_1to2, const cv::Mat &tvec_1to2, const double d_inv, const cv::Mat &normal)
+{
+    cv::Mat homography = R_1to2 + d_inv * tvec_1to2*normal.t();
+    return homography;
+}
 
 void FFmpegVideoDecoder::decode()
 {
-    /*
     cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
 
-    cv::Mat cameraMat;
-    cv::Mat newCameraMat;
+    cv::Mat cameraMat(3,3, CV_32FC1, 0.0f);
     cv::Mat dcoeff;
     cv::Mat RMat;
     cv::Mat TMat;
+    cv::Mat map1;
+    cv::Mat map2;
+
 
     file_read["cameraMat"] >> cameraMat;
-    file_read["newCameraMat"] >> newCameraMat;
     file_read["distCoeffs"] >> dcoeff;
     file_read["Rvec"] >> RMat;
     file_read["Tvec"] >> TMat;
-    cv::Mat map1;
-    cv::Mat map2;
-    cv::Mat new_cam;
-    cv::Mat cameraRotated;
 
     file_read.release();
-    */
 
     nv_hw_dev = false;
     int nFrameReturned = 0, nFrame = 0;
@@ -217,13 +226,39 @@ void FFmpegVideoDecoder::decode()
     ret = avformat_find_stream_info(m_pIc, NULL);
 
     ret = av_read_play(m_pIc);
-    // cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
-    // cv::Mat out1, out2, out3, out4, out5;
-    // cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
-    // cv::initUndistortRectifyMap(cameraMat, dcoeff, RMat, cameraMat,  cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height), CV_32FC1, map1, map2);
-    // cv::stereoRectify(cameraMat, dcoeff, cv::getOptimalNewCameraMatrix(cameraMat, dcoeff, imgSize, 0.7, imgSize, 0), cv::Mat(), imgSize, RMat, TMat, out1, out2, out3, out4, out5);
-    // cv::fisheye::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), newCameraMat, imgSize, CV_16SC2, map1, map2);
-    // cv::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(), cameraMat, imgSize, CV_16SC2, map1, map2);
+    cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
+    std::vector<float> rvec;
+    rvec.push_back(0.4);
+    rvec.push_back(1.4);
+    rvec.push_back(1.1);
+    cv::Mat R;
+    cv::Rodrigues(rvec, R);
+    cv::Mat Rot90(3,3, CV_32FC1, 0.0f);
+
+    double theta = 60;
+    double s = std::sin(theta * M_PI / 180.0);
+    double c = std::cos(theta * M_PI / 180.0);
+
+    Rot90.at<float>(0,0) = c;
+    Rot90.at<float>(0,1) = -s;
+    Rot90.at<float>(0,2) = 0.0;
+
+    Rot90.at<float>(1,0) = s;
+    Rot90.at<float>(1,1) = c;
+    Rot90.at<float>(1,2) = 0.0;
+
+    Rot90.at<float>(2,0) = 0.0;
+    Rot90.at<float>(2,1) = 0.0;
+    Rot90.at<float>(2,2) = 1.0;
+
+
+    Rot90.convertTo(Rot90, 6);
+    R.convertTo(R, 6);
+    std::cout << cameraMat.type() << std::endl;
+    std::cout << Rot90.type() << std::endl;
+
+    cv::fisheye::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(),  cameraMat * Rot90 * R, imgSize, CV_32FC1, map1, map2);
+
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
 
@@ -373,13 +408,8 @@ void FFmpegVideoDecoder::decode()
                     } else {
                         cv::Mat new_frame;
                         cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);;
-
-                        new_frame = raw_frame;
-                        /*
                         cv::remap(raw_frame, new_frame, map1, map2,  cv::INTER_NEAREST);
-                        cv::undistort(raw_frame, new_frame, cameraMat, dcoeff, newCameraMat);
-                        cv::fisheye::undistortImage(raw_frame, new_frame, cameraMat, dcoeff, cameraMat);
-                        */
+
 
                         int cvLinesizes[1];
                         cvLinesizes[0] = new_frame.step1();

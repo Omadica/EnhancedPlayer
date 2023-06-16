@@ -75,17 +75,31 @@ int main()
 	unsigned char * fish_buf = NULL;
 	BITMAPINFOHEADER out_header;
 	int error;
+	while(true)
+	{
+		fd = Fisheye_NewObj();
+		LoadFisheyeImg(&fish_header, &fish_buf);
 
-	fd = Fisheye_NewObj();
-	LoadFisheyeImg(&fish_header, &fish_buf);
-
-	unsigned char out_buf[1200 * 1200 * 3] = {0};
+		unsigned char out_buf[1200 * 1200 * 3] = {0};
 
 
-	Fisheye_SetParameters(fd, 2592, 1944, 1287, 984, 2010, 477, FISHEYE_STEREOGRAPHIC, FISHEYE_NORMAL, &fish_header);
+		Fisheye_SetParameters(fd, 2592, 1944, 1287, 984, 2010, 477, FISHEYE_STEREOGRAPHIC, FISHEYE_NORMAL, &fish_header);
 
-	Fisheye_Dewarp(fd, -113, 76, 0.5f, &fish_header, fish_buf, &out_header, out_buf, 1200, 1200);
-	WriteImg("out.bmp", &out_header, out_buf);
+		//Fisheye_Dewarp(fd, -113, 76, 1.0f, &fish_header, fish_buf, &out_header, out_buf, 1200, 1200);        // ok
+		//Fisheye_Wall_Dewarp(fd, -113, 76, 1.0f, &fish_header, fish_buf, &out_header, out_buf, 1200, 1200);   // ok
+		//Fisheye_Wall_180_Panorama(fd, &fish_header, fish_buf, &out_header, out_buf, 1200, 1200);             // ok
+
+		// it's just a small slab
+		Fisheye_360_Standard(fd, 90, 1, 1, 1, 90, &fish_header, fish_buf, &out_header, out_buf, 1200, 1200); // leaks!
+
+
+		Fisheye_Free(fd);
+		printf("%s\n", "asdasd");
+
+
+		delete fish_buf;
+	}
 
 	return 0;
 }
+

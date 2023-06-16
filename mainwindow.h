@@ -51,9 +51,6 @@ private:
     int numPic;
     ZernikeTransform* ZerTrans;
 
-
-
-
     Ui::MainWindow *ui;
     void addcamera();
 };

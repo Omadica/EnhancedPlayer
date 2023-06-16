@@ -1,4 +1,5 @@
 #include "custom_view.h"
+#include "qgraphicsitem.h"
 #include <QWidget>
 #include <QModelIndex>
 #include <QMenu>
@@ -78,3 +79,24 @@ void custom_view::mouseReleaseEvent(QMouseEvent *event)
     qDebug() << event->pos() << " " << m_bIsMousePressed;
 }
 
+void custom_view::resizeEvent(QResizeEvent *) {
+    QList<QGraphicsItem *> i = items();
+    int window_w = width();
+    if (window_w == 0 || i.size() != 1) return;
+
+    auto *item = qgraphicsitem_cast<QGraphicsPixmapItem *>(i[0]);
+    qreal img_w = static_cast<double>(item->pixmap().width());
+    qreal factor = window_w / img_w;
+    item->setScale(factor);
+
+    QRectF rect = item->boundingRect();
+    rect.setHeight(height());
+    rect.setWidth(width());
+    rect.moveCenter(item->boundingRect().center());
+
+    QGraphicsScene *s = scene();
+    s->setSceneRect(rect);
+
+    item->setTransformOriginPoint(item->boundingRect().center());
+    centerOn(item);
+}

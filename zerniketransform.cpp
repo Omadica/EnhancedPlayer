@@ -24,7 +24,7 @@ void ZernikeTransform::transformFrame()
             objp.push_back(cv::Point3f(j,i,0));
 
     std::vector<cv::String> images;
-    std::string path = "*.png";
+    std::string path = "*.jpeg";
 
     cv::glob(path, images);
     cv::Mat frame, gray;

@@ -17,11 +17,6 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "opencv2/calib3d.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/core.hpp"
-
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -99,8 +94,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
-
-
 }
 
 MainWindow::~MainWindow()
@@ -138,6 +131,8 @@ void MainWindow::TakePicture()
 void MainWindow::DrawGraph(QImage img)
 {
     
+    cv::Size imgSize = cv::Size(img.width(), img.height());
+
     m_FrameImage = img;
     scene->clear();
     scene->addPixmap(QPixmap::fromImage(img));
