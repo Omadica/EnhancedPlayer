@@ -7,6 +7,8 @@
 #include <QGraphicsScene>
 #include "FFmpegVideoDecoder.h"
 #include "zerniketransform.h"
+#include "./ui_FishEye.h"
+#include "transform.h"
 
 extern "C"
 {
@@ -34,6 +36,15 @@ private slots:
     void loadDecoders();
     void TakePicture();
     void resetDecoder();
+    void openFishEyeWindow();
+    void setRadius();
+    void setCx();
+    void setCy();
+    void setDx();
+    void setDy();
+    void setAperture();
+    void setTheta();
+    void setPhi();
 
 signals:
     void readyForFrame();
@@ -51,7 +62,16 @@ private:
     int numPic;
     ZernikeTransform* ZerTrans;
 
+    QMainWindow *mw;
+    Ui::FishEyeWindow *w;
     Ui::MainWindow *ui;
     void addcamera();
+
+    bool m_bDewarp{false};
+    fisheyeImgConv *m_fisheye;
+    int m_radius, m_aperture;
+    int m_cx, m_cy;
+    int m_dx, m_dy;
+    float m_theta, m_phi;
 };
 #endif // MAINWINDOW_H

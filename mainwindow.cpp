@@ -14,8 +14,8 @@
 #include <QGraphicsPixmapItem>
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include "FFmpegLog.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "ui_FishEye.h"
+
 
 extern "C"
 {
@@ -46,12 +46,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     /**
      * check Nvidia device(s) (The device search has to be improved)
      */
-    int nGpu = 0;
-    cuDeviceGetCount(&nGpu);
-
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0);
-    ui->deviceNames->addItem(QString(prop.name));
 
 
 
@@ -91,14 +85,93 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
+    connect(ui->graphicsView, SIGNAL(click_on_dewarp()), this, SLOT(openFishEyeWindow()) );
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
 }
 
+
+void MainWindow::openFishEyeWindow()
+{
+    m_fisheye = new fisheyeImgConv();
+    mw = new QMainWindow();
+    w = new Ui::FishEyeWindow();
+    w->setupUi(mw);
+    mw->show();
+
+    m_radius = 704;
+    m_cx = 704;
+    m_cy = 704;
+    m_dx = 0;
+    m_dy = 0;
+    m_aperture = 1;
+
+    m_theta = 3.14;
+    m_phi = 3.14;
+    m_bDewarp = true;
+
+
+    connect(w->horizontalSlider, SIGNAL(valueChanged()), this, SLOT(setRadius()));
+    connect(w->horizontalSlider_2, SIGNAL(valueChanged()), this, SLOT(setCx()));
+    connect(w->horizontalSlider_3, SIGNAL(valueChanged()), this, SLOT(setCy()));
+    connect(w->horizontalSlider_4, SIGNAL(valueChanged()), this, SLOT(setDx()));
+    connect(w->horizontalSlider_5, SIGNAL(valueChanged()), this, SLOT(setDy()));
+    connect(w->horizontalSlider_6, SIGNAL(valueChanged()), this, SLOT(setAperture()));
+    connect(w->horizontalSlider_7, SIGNAL(valueChanged()), this, SLOT(setTheta()));
+    connect(w->horizontalSlider_8, SIGNAL(valueChanged()), this, SLOT(setPhi()));
+
+
+}
+
+void MainWindow::setRadius()
+{
+    m_radius = w->horizontalSlider->value();
+    std::cout << "Raggio: " << m_radius << std::endl;
+}
+
+void MainWindow::setCx()
+{
+    m_cx = w->horizontalSlider_2->value();
+}
+
+void MainWindow::setCy()
+{
+    m_cy = w->horizontalSlider_3->value();
+}
+
+void MainWindow::setDx()
+{
+    m_dx = w->horizontalSlider_4->value();
+}
+
+void MainWindow::setDy()
+{
+    m_dy = w->horizontalSlider_5->value();
+}
+
+void MainWindow::setAperture()
+{
+    m_aperture = w->horizontalSlider_6->value();
+}
+
+
+void MainWindow::setTheta()
+{
+    m_theta = w->horizontalSlider_7->value();
+}
+
+void MainWindow::setPhi()
+{
+    m_phi = w->horizontalSlider_8->value();
+}
+
 MainWindow::~MainWindow()
 {
+    delete w;
     delete ui;
+
+
 }
 
 void MainWindow::loadDecoders()
@@ -130,12 +203,26 @@ void MainWindow::TakePicture()
 
 void MainWindow::DrawGraph(QImage img)
 {
-    
-    cv::Size imgSize = cv::Size(img.width(), img.height());
-
     m_FrameImage = img;
-    scene->clear();
-    scene->addPixmap(QPixmap::fromImage(img));
+    if(m_bDewarp)
+    {
+        cv::Mat cv_img = cv::Mat(img.height(), img.width(), CV_8UC3, (cv::Scalar*)img.scanLine(0));
+        m_fisheye->fisheye2equirect(cv_img, cv_img, cv::Size(700, 700), 0.1, 0, 0, 704, false);
+        //m_fisheye->equirect2persp(*cv_img, *cv_img, 120.0, m_theta, m_phi, 200, 200);
+
+        QImage img_dewarped = QImage((uchar*) cv_img.data, cv_img.cols, cv_img.rows, cv_img.step, QImage::Format_RGB888);
+        cv_img.release();
+
+        scene->clear();
+        scene->addPixmap(QPixmap::fromImage(img_dewarped));
+    } else {
+        scene->clear();
+        scene->addPixmap(QPixmap::fromImage(img));
+    }
+
+
+
+
 }
 
 void MainWindow::PrintDecoderInfo(QString dec)

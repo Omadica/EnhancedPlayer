@@ -1,4 +1,5 @@
 #include "custom_view.h"
+#include "mainwindow.h"
 #include "qgraphicsitem.h"
 #include <QWidget>
 #include <QModelIndex>
@@ -31,6 +32,7 @@ void custom_view::mousePressEvent(QMouseEvent *event)
 
     if(event->button() == Qt::RightButton)
     {
+
         QMenu *menu = new QMenu(this);
 
         QAction *dewarp = new QAction(this);
@@ -49,6 +51,8 @@ void custom_view::mousePressEvent(QMouseEvent *event)
         menu->addAction(undistortLens);
         menu->addAction(dewarp);
         menu->popup(this->viewport()->mapToGlobal(pos));
+
+        connect(dewarp, SIGNAL(triggered()), this, SLOT(clicked_on_dewarp()));
     }
     else if(event->button() == Qt::LeftButton)
     {
@@ -60,43 +64,57 @@ void custom_view::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void custom_view::mouseMoveEvent(QMouseEvent *event)
-{
-    if (m_bIsMousePressed)
-    {
-        QPoint pos = event->pos();
-        bottomRight = pos;
-        qDebug() << pos << " " << m_bIsMousePressed;
-    }
-    update();
+void custom_view::clicked_on_dewarp(){
+    emit click_on_dewarp();
 }
 
-void custom_view::mouseReleaseEvent(QMouseEvent *event)
-{
-    m_bIsMousePressed = false;
-    if(event->button() == Qt::LeftButton)
-        rects.append(QRect(topLeft, bottomRight));
-    qDebug() << event->pos() << " " << m_bIsMousePressed;
-}
 
-void custom_view::resizeEvent(QResizeEvent *) {
-    QList<QGraphicsItem *> i = items();
-    int window_w = width();
-    if (window_w == 0 || i.size() != 1) return;
 
-    auto *item = qgraphicsitem_cast<QGraphicsPixmapItem *>(i[0]);
-    qreal img_w = static_cast<double>(item->pixmap().width());
-    qreal factor = window_w / img_w;
-    item->setScale(factor);
+//void custom_view::mouseMoveEvent(QMouseEvent *event)
+//{
+//    if (m_bIsMousePressed)
+//    {
+//        QPoint pos = event->pos();
+//        bottomRight = pos;
+//        qDebug() << pos << " " << m_bIsMousePressed;
+//    }
+//    update();
+//}
 
-    QRectF rect = item->boundingRect();
-    rect.setHeight(height());
-    rect.setWidth(width());
-    rect.moveCenter(item->boundingRect().center());
+//void custom_view::mouseReleaseEvent(QMouseEvent *event)
+//{
+//    m_bIsMousePressed = false;
+//    if(event->button() == Qt::LeftButton)
+//        rects.append(QRect(topLeft, bottomRight));
+//    qDebug() << event->pos() << " " << m_bIsMousePressed;
+//}
 
-    QGraphicsScene *s = scene();
-    s->setSceneRect(rect);
+//void custom_view::resizeEvent(QResizeEvent *) {
+//    QList<QGraphicsItem *> i = items();
+//    int window_w = width();
+//    if (window_w == 0 || i.size() != 1) return;
 
-    item->setTransformOriginPoint(item->boundingRect().center());
-    centerOn(item);
-}
+//    auto *item = qgraphicsitem_cast<QGraphicsPixmapItem *>(i[0]);
+//    qreal img_w = static_cast<double>(item->pixmap().width());
+//    qreal factor = window_w / img_w;
+//    item->setScale(factor);
+
+//    QRectF rect = item->boundingRect();
+//    rect.setHeight(height());
+//    rect.setWidth(width());
+//    rect.moveCenter(item->boundingRect().center());
+
+//    QGraphicsScene *s = scene();
+//    s->setSceneRect(rect);
+
+//    item->setTransformOriginPoint(item->boundingRect().center());
+//    centerOn(item);
+//}
+
+
+
+
+
+
+
+

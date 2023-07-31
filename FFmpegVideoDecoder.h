@@ -5,8 +5,6 @@
 #include <QPointer>
 #include <QtMultimedia/QVideoSink>
 #include <QImage>
-#include "NvCodecUtils.h"
-#include "NvDecoder.h"
 #include "qmediacapturesession.h"
 extern "C"
 {
@@ -76,8 +74,6 @@ private:
     AVFrame* m_pOutFrame;
     bool bool_hw_accel;
     bool nv_hw_dev;
-    NvDecoder* nv_dec;
-    CUcontext* cuContext;
     // Hardware color range conversion
     SwsContext *m_pHWconversion;
     QString HWDec_name;

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1272</width>
-    <height>766</height>
+    <height>715</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -160,7 +160,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>/stream0</string>
+           <string>/stream1</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_4">

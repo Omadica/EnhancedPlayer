@@ -10,11 +10,14 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(EMSDK "C:/Users/smandelli/Source/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
+
 if(WIN32)
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.0/msvc2019_64/lib/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.1/msvc2019_64/lib/cmake")
     list(APPEND CMAKE_PREFIX_PATH "D:/opencv/build")
+    set(QT_CHAINLOAD_TOOLCHAIN_FILE "C:/Users/smandelli/Desktop/emscripten/cmake/Modules/Platform/Emscripten.cmake")
 else()
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.0/gcc_64/lib/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.1/gcc_64/lib/cmake")
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/artifacts/opencv/build")
 endif()
 
@@ -22,25 +25,27 @@ if(WIN32)
     set(NV_VIDEO_CODEC_SDK_LIB_CUVID "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvcuvid.lib")
     set(NV_VIDEO_CODEC_SDK_LIB_ENCOD  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/x64/nvencodeapi.lib")
     set(FISH_EYE_DC_LIB  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Fishye_SDK_V1003/lib_dll/x64-normal/FishEye.lib")
+    set(MNDEWARP_LIB  "${CMAKE_CURRENT_LIST_DIR}/artifacts/mndewarp/mndewarp_static.lib")
 else()
     set(NV_VIDEO_CODEC_SDK_LIB_CUVID "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64/libnvcuvid.so")
     set(NV_VIDEO_CODEC_SDK_LIB_ENCOD  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Video_Codec_SDK_12.0.16/Lib/linux/stubs/x86_64/libnvidia-encode.so")
 endif()
 
 set(FISH_EYE_DC_INCS  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Fishye_SDK_V1003/include")
+set(MNDEWARP_INCS  "${CMAKE_CURRENT_LIST_DIR}/artifacts/mndewarp/include")
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 
-enable_language(CUDA)
+#enable_language(CUDA)
 
 find_package(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(CUDA REQUIRED)
+#find_package(CUDA REQUIRED)
 
 
-find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
-find_library(CUDA_LIBRARY cuda ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+#find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+#find_library(CUDA_LIBRARY cuda ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
 
 find_package(PkgConfig REQUIRED)
@@ -64,42 +69,6 @@ file (GLOB PROJECT_SOURCES PROJECT_HEADERS PROJECT_FORMS PROJECT_TR
     ${CMAKE_CURRENT_SOURCE_DIR}/*.ts
    )
 
-
-# set(PROJECT_SOURCES
-#         main.cpp
-#         mainwindow.cpp
-#         custom_view.cpp
-#         FFmpegLog.cpp
-#         FFmpegVideoDecoder.cpp
-#         NvDecoder.cpp
-#         glrender.cpp
-#         zerniketransform.cpp
-#         quaternions.cpp
-#         math_sf.cpp
-#         sys_utils.cpp
-#         sys_env.cpp
-#         scribble.cpp
-#         mainwindow.h
-#         custom_view.h
-#         FFmpegLog.h
-#         FFmpegVideoDecoder.h
-#         NvDecoder.h
-#         glrender.h
-#         Logger.h
-#         cuviddec.h
-#         nvcuvid.h
-#         nvEncodeAPI.h
-#         NvCodecUtils.h
-#         AppDecUtils.h
-#         zerniketransform.h
-#         quaternions.h
-#         math_sf.h
-#         sys_utils.h
-#         sys_env.h
-#         scribble.h
-#         mainwindow.ui
-#         ${TS_FILES}
-# )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(EnhancedPlayer
@@ -128,6 +97,7 @@ target_include_directories(EnhancedPlayer PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${OpenCV_INCLUDE_DIRS}
     ${FISH_EYE_DC_INCS}
+    ${MNDEWARP_INCS}
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -142,6 +112,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     ${CUDART_LIBRARY}
     ${OpenCV_LIBS}
     ${FISH_EYE_DC_LIB}
+    ${MNDEWARP_LIB}
 )
 
 

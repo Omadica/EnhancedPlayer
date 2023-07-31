@@ -1,5 +1,4 @@
 #include "FFmpegVideoDecoder.h"
-#include "AppDecUtils.h"
 #include "opencv2/calib3d.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -11,8 +10,6 @@
 #include <string>
 #include <QDebug>
 #include <QLabel>
-#include <cuda.h>
-#include <cuda_runtime.h>
 #include <QByteArray>
 #include <QVideoFrameFormat>
 #include <QRandomGenerator>
@@ -114,34 +111,7 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-inline cudaVideoCodec FFmpeg2NvCodecId(AVCodecID id) {
-    switch (id) {
-    case AV_CODEC_ID_MPEG1VIDEO : return cudaVideoCodec_MPEG1;
-    case AV_CODEC_ID_MPEG2VIDEO : return cudaVideoCodec_MPEG2;
-    case AV_CODEC_ID_MPEG4      : return cudaVideoCodec_MPEG4;
-    case AV_CODEC_ID_WMV3       :
-    case AV_CODEC_ID_VC1        : return cudaVideoCodec_VC1;
-    case AV_CODEC_ID_H264       : return cudaVideoCodec_H264;
-    case AV_CODEC_ID_HEVC       : return cudaVideoCodec_HEVC;
-    case AV_CODEC_ID_VP8        : return cudaVideoCodec_VP8;
-    case AV_CODEC_ID_VP9        : return cudaVideoCodec_VP9;
-    case AV_CODEC_ID_MJPEG      : return cudaVideoCodec_JPEG;
-    case AV_CODEC_ID_AV1        : return cudaVideoCodec_AV1;
-    default                     : return cudaVideoCodec_NumCodecs;
-    }
-}
 
-void ConvertSemiplanarToPlanar(uint8_t *pHostFrame, int nWidth, int nHeight, int nBitDepth) {
-    if (nBitDepth == 8) {
-        // nv12->iyuv
-        YuvConverter<uint8_t> converter8(nWidth, nHeight);
-        converter8.UVInterleavedToPlanar(pHostFrame);
-    } else {
-        // p016->yuv420p16
-        YuvConverter<uint16_t> converter16(nWidth, nHeight);
-        converter16.UVInterleavedToPlanar((uint16_t *)pHostFrame);
-    }
-}
 
 FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, QString rtsp, bool hw_accel, bool nvidia_dev, QString HWdec_name)
     : QObject{parent}, rtsp_addr(rtsp), bool_hw_accel(hw_accel), nv_hw_dev(nvidia_dev), HWDec_name(HWdec_name),
@@ -156,8 +126,6 @@ FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, QString rtsp, bool hw_ac
     m_pOutFrame(nullptr),
     m_pIc(nullptr),
     m_pStream(nullptr),
-    nv_dec(nullptr),
-    cuContext(nullptr),
     m_stopDecoding(false)
 {
     qDebug() << HWdec_name.toStdString().c_str();
@@ -195,22 +163,6 @@ cv::Mat computeHomography(const cv::Mat &R_1to2, const cv::Mat &tvec_1to2, const
 
 void FFmpegVideoDecoder::decode()
 {
-    cv::FileStorage file_read("cameraCalibration.ext", cv::FileStorage::READ);
-
-    cv::Mat cameraMat(3,3, CV_32FC1, 0.0f);
-    cv::Mat dcoeff;
-    cv::Mat RMat;
-    cv::Mat TMat;
-    cv::Mat map1;
-    cv::Mat map2;
-
-
-    file_read["cameraMat"] >> cameraMat;
-    file_read["distCoeffs"] >> dcoeff;
-    file_read["Rvec"] >> RMat;
-    file_read["Tvec"] >> TMat;
-
-    file_read.release();
 
     nv_hw_dev = false;
     int nFrameReturned = 0, nFrame = 0;
@@ -227,37 +179,6 @@ void FFmpegVideoDecoder::decode()
 
     ret = av_read_play(m_pIc);
     cv::Size imgSize = cv::Size(m_pIc->streams[0]->codecpar->width, m_pIc->streams[0]->codecpar->height);
-    std::vector<float> rvec;
-    rvec.push_back(0.4);
-    rvec.push_back(1.4);
-    rvec.push_back(1.1);
-    cv::Mat R;
-    cv::Rodrigues(rvec, R);
-    cv::Mat Rot90(3,3, CV_32FC1, 0.0f);
-
-    double theta = 60;
-    double s = std::sin(theta * M_PI / 180.0);
-    double c = std::cos(theta * M_PI / 180.0);
-
-    Rot90.at<float>(0,0) = c;
-    Rot90.at<float>(0,1) = -s;
-    Rot90.at<float>(0,2) = 0.0;
-
-    Rot90.at<float>(1,0) = s;
-    Rot90.at<float>(1,1) = c;
-    Rot90.at<float>(1,2) = 0.0;
-
-    Rot90.at<float>(2,0) = 0.0;
-    Rot90.at<float>(2,1) = 0.0;
-    Rot90.at<float>(2,2) = 1.0;
-
-
-    Rot90.convertTo(Rot90, 6);
-    R.convertTo(R, 6);
-    std::cout << cameraMat.type() << std::endl;
-    std::cout << Rot90.type() << std::endl;
-
-    cv::fisheye::initUndistortRectifyMap(cameraMat, dcoeff, cv::Mat(),  cameraMat * Rot90 * R, imgSize, CV_32FC1, map1, map2);
 
     if(ret < 0)
         emit error(QString("FFmpegVideoDecoder: Error, cannot read and play rtsp stream"));
@@ -407,8 +328,8 @@ void FFmpegVideoDecoder::decode()
                                   );
                     } else {
                         cv::Mat new_frame;
-                        cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);;
-                        cv::remap(raw_frame, new_frame, map1, map2,  cv::INTER_NEAREST);
+                        cv::Mat raw_frame = avframeToCvmat(m_pOutFrame);
+                        new_frame = raw_frame;
 
 
                         int cvLinesizes[1];

@@ -18,9 +18,15 @@ public:
 protected:
     virtual void wheelEvent(QWheelEvent *event) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseMoveEvent(QMouseEvent *event) override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) override;
-    virtual void resizeEvent(QResizeEvent *) override;
+
+private slots:
+    void clicked_on_dewarp();
+
+signals:
+    void click_on_dewarp();
+//    virtual void mouseMoveEvent(QMouseEvent *event) override;
+//    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+//    virtual void resizeEvent(QResizeEvent *) override;
 
 private:
     QList<QRect> rects;
