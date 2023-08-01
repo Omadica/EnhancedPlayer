@@ -95,83 +95,91 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 void MainWindow::openFishEyeWindow()
 {
     m_fisheye = new fisheyeImgConv();
-    mw = new QMainWindow();
-    w = new Ui::FishEyeWindow();
-    w->setupUi(mw);
-    mw->show();
 
     m_radius = 704;
-    m_cx = 704;
-    m_cy = 704;
-    m_dx = 0;
-    m_dy = 0;
-    m_aperture = 1;
+    ui->horizontalSlider->setValue(m_radius);
 
-    m_theta = 3.14;
-    m_phi = 3.14;
+    m_cx = 704;
+    ui->horizontalSlider_2->setValue(m_cx);
+
+    m_cy = 704;
+    ui->horizontalSlider_3->setValue(m_cy);
+
+    m_dx = 0;
+    ui->horizontalSlider_4->setValue(m_dx);
+
+    m_dy = 0;
+    ui->horizontalSlider_5->setValue(m_dy);
+
+    m_aperture = 135;
+    ui->horizontalSlider_6->setValue(m_aperture);
+
+    m_theta = 150;
+    ui->horizontalSlider_7->setValue(m_theta);
+
+    m_phi = 135;
+    ui->horizontalSlider_8->setValue(m_phi);
+
     m_bDewarp = true;
 
 
-    connect(w->horizontalSlider, SIGNAL(valueChanged()), this, SLOT(setRadius()));
-    connect(w->horizontalSlider_2, SIGNAL(valueChanged()), this, SLOT(setCx()));
-    connect(w->horizontalSlider_3, SIGNAL(valueChanged()), this, SLOT(setCy()));
-    connect(w->horizontalSlider_4, SIGNAL(valueChanged()), this, SLOT(setDx()));
-    connect(w->horizontalSlider_5, SIGNAL(valueChanged()), this, SLOT(setDy()));
-    connect(w->horizontalSlider_6, SIGNAL(valueChanged()), this, SLOT(setAperture()));
-    connect(w->horizontalSlider_7, SIGNAL(valueChanged()), this, SLOT(setTheta()));
-    connect(w->horizontalSlider_8, SIGNAL(valueChanged()), this, SLOT(setPhi()));
+    connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(setRadius()));
+    connect(ui->horizontalSlider_2, SIGNAL(valueChanged(int)), this, SLOT(setCx()));
+    connect(ui->horizontalSlider_3, SIGNAL(valueChanged(int)), this, SLOT(setCy()));
+    connect(ui->horizontalSlider_4, SIGNAL(valueChanged(int)), this, SLOT(setDx()));
+    connect(ui->horizontalSlider_5, SIGNAL(valueChanged(int)), this, SLOT(setDy()));
+    connect(ui->horizontalSlider_6, SIGNAL(valueChanged(int)), this, SLOT(setAperture()));
+    connect(ui->horizontalSlider_7, SIGNAL(valueChanged(int)), this, SLOT(setTheta()));
+    connect(ui->horizontalSlider_8, SIGNAL(valueChanged(int)), this, SLOT(setPhi()));
 
 
 }
 
 void MainWindow::setRadius()
 {
-    m_radius = w->horizontalSlider->value();
+    m_radius = ui->horizontalSlider->value();
     std::cout << "Raggio: " << m_radius << std::endl;
 }
 
 void MainWindow::setCx()
 {
-    m_cx = w->horizontalSlider_2->value();
+    m_cx = ui->horizontalSlider_2->value();
 }
 
 void MainWindow::setCy()
 {
-    m_cy = w->horizontalSlider_3->value();
+    m_cy = ui->horizontalSlider_3->value();
 }
 
 void MainWindow::setDx()
 {
-    m_dx = w->horizontalSlider_4->value();
+    m_dx = ui->horizontalSlider_4->value();
 }
 
 void MainWindow::setDy()
 {
-    m_dy = w->horizontalSlider_5->value();
+    m_dy = ui->horizontalSlider_5->value();
 }
 
 void MainWindow::setAperture()
 {
-    m_aperture = w->horizontalSlider_6->value();
+    m_aperture = ui->horizontalSlider_6->value();
 }
 
 
 void MainWindow::setTheta()
 {
-    m_theta = w->horizontalSlider_7->value();
+    m_theta = ui->horizontalSlider_7->value();
 }
 
 void MainWindow::setPhi()
 {
-    m_phi = w->horizontalSlider_8->value();
+    m_phi = ui->horizontalSlider_8->value();
 }
 
 MainWindow::~MainWindow()
 {
-    delete w;
     delete ui;
-
-
 }
 
 void MainWindow::loadDecoders()
@@ -207,8 +215,8 @@ void MainWindow::DrawGraph(QImage img)
     if(m_bDewarp)
     {
         cv::Mat cv_img = cv::Mat(img.height(), img.width(), CV_8UC3, (cv::Scalar*)img.scanLine(0));
-        m_fisheye->fisheye2equirect(cv_img, cv_img, cv::Size(700, 700), 0.1, 0, 0, 704, false);
-        //m_fisheye->equirect2persp(*cv_img, *cv_img, 120.0, m_theta, m_phi, 200, 200);
+        m_fisheye->fisheye2equirect(cv_img, cv_img, cv::Size(1408, 1408), m_aperture, m_dx, m_dy, m_radius, false);
+        //m_fisheye->equirect2persp(cv_img, cv_img, 120.0, m_theta, m_phi, 1408, 1408);
 
         QImage img_dewarped = QImage((uchar*) cv_img.data, cv_img.cols, cv_img.rows, cv_img.step, QImage::Format_RGB888);
         cv_img.release();
