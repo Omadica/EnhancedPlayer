@@ -14,20 +14,11 @@ set(EMSDK "C:/Users/smandelli/Source/emsdk/upstream/emscripten/cmake/Modules/Pla
 
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.1/msvc2019_64/lib/cmake")
-<<<<<<< HEAD
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.1/msvc2019_64/lib/cmake")
-=======
->>>>>>> main
-    list(APPEND CMAKE_PREFIX_PATH "D:/opencv/build")
-    set(QT_CHAINLOAD_TOOLCHAIN_FILE "C:/Users/smandelli/Desktop/emscripten/cmake/Modules/Platform/Emscripten.cmake")
-else()
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.1/gcc_64/lib/cmake")
-<<<<<<< HEAD
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/../Qt/6.5.1/gcc_64/lib/cmake")
-=======
->>>>>>> main
-    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/artifacts/opencv/build")
 endif()
+
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}/artifacts/opencv/build")
 
 set(FISH_EYE_DC_INCS  "${CMAKE_CURRENT_LIST_DIR}/artifacts/Fishye_SDK_V1003/include")
 set(MNDEWARP_INCS  "${CMAKE_CURRENT_LIST_DIR}/artifacts/mndewarp/include")

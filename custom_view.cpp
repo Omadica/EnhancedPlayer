@@ -28,19 +28,10 @@ void custom_view::wheelEvent(QWheelEvent *event)
 //{
 //    /*
 //    QPoint pos = event->pos();
-<<<<<<< HEAD
-
-//    if(event->button() == Qt::RightButton)
-//    {
-//        QMenu *menu = new QMenu(this);
-=======
->>>>>>> main
-
 //    if(event->button() == Qt::RightButton)
 //    {
 //        QMenu *menu = new QMenu(this);
 
-<<<<<<< HEAD
 //        QAction *zoom1 = new QAction(this);
 //        zoom1->setIconVisibleInMenu(true);
 //        zoom1->setText(tr("Reset zoom 1:1"));
@@ -56,7 +47,6 @@ void custom_view::wheelEvent(QWheelEvent *event)
 //    }
 //    else if(event->button() == Qt::LeftButton)
 //    {
-=======
 //        QAction *dewarp = new QAction(this);
 //        dewarp->setIconVisibleInMenu(true);
 //        dewarp->setText(tr("Dewarp FishEye"));
@@ -68,7 +58,7 @@ void custom_view::wheelEvent(QWheelEvent *event)
 //        QAction *undistortLens = new QAction(this);
 //        undistortLens->setIconVisibleInMenu(true);
 //        undistortLens->setText(tr("Lens correction"));
->>>>>>> main
+
 
 //        menu->addAction(zoom1);
 //        menu->addAction(undistortLens);
@@ -78,7 +68,7 @@ void custom_view::wheelEvent(QWheelEvent *event)
 //    else if(event->button() == Qt::LeftButton)
 //    {
 
-<<<<<<< HEAD
+
 //void custom_view::mouseMoveEvent(QMouseEvent *event)
 //{
 //    /*
@@ -90,7 +80,6 @@ void custom_view::wheelEvent(QWheelEvent *event)
 //        //update();
 //    }
 //    */
-=======
 //        m_bIsMousePressed = true;
 //        topLeft = pos;
 //        bottomRight = topLeft;
@@ -98,7 +87,7 @@ void custom_view::wheelEvent(QWheelEvent *event)
 //    }
 //    */
 //}
->>>>>>> main
+
 
 //void custom_view::mouseMoveEvent(QMouseEvent *event)
 //{

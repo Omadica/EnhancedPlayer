@@ -78,100 +78,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
     connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
-    connect(ui->graphicsView, SIGNAL(click_on_dewarp()), this, SLOT(openFishEyeWindow()) );
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
-
-<<<<<<< HEAD
-}
-
-
-void MainWindow::openFishEyeWindow()
-{
-    m_fisheye = new fisheyeImgConv();
-
-    m_radius = 704;
-    ui->horizontalSlider->setValue(m_radius);
-
-    m_cx = 704;
-    ui->horizontalSlider_2->setValue(m_cx);
-
-    m_cy = 704;
-    ui->horizontalSlider_3->setValue(m_cy);
-
-    m_dx = 0;
-    ui->horizontalSlider_4->setValue(m_dx);
-
-    m_dy = 0;
-    ui->horizontalSlider_5->setValue(m_dy);
-
-    m_aperture = 135;
-    ui->horizontalSlider_6->setValue(m_aperture);
-
-    m_theta = 150;
-    ui->horizontalSlider_7->setValue(m_theta);
-
-    m_phi = 135;
-    ui->horizontalSlider_8->setValue(m_phi);
-
-    m_bDewarp = true;
-
-
-    connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(setRadius()));
-    connect(ui->horizontalSlider_2, SIGNAL(valueChanged(int)), this, SLOT(setCx()));
-    connect(ui->horizontalSlider_3, SIGNAL(valueChanged(int)), this, SLOT(setCy()));
-    connect(ui->horizontalSlider_4, SIGNAL(valueChanged(int)), this, SLOT(setDx()));
-    connect(ui->horizontalSlider_5, SIGNAL(valueChanged(int)), this, SLOT(setDy()));
-    connect(ui->horizontalSlider_6, SIGNAL(valueChanged(int)), this, SLOT(setAperture()));
-    connect(ui->horizontalSlider_7, SIGNAL(valueChanged(int)), this, SLOT(setTheta()));
-    connect(ui->horizontalSlider_8, SIGNAL(valueChanged(int)), this, SLOT(setPhi()));
-
-
-}
-
-void MainWindow::setRadius()
-{
-    m_radius = ui->horizontalSlider->value();
-    std::cout << "Raggio: " << m_radius << std::endl;
-}
-
-void MainWindow::setCx()
-{
-    m_cx = ui->horizontalSlider_2->value();
-}
-
-void MainWindow::setCy()
-{
-    m_cy = ui->horizontalSlider_3->value();
-}
-
-void MainWindow::setDx()
-{
-    m_dx = ui->horizontalSlider_4->value();
-}
-
-void MainWindow::setDy()
-{
-    m_dy = ui->horizontalSlider_5->value();
-}
-
-void MainWindow::setAperture()
-{
-    m_aperture = ui->horizontalSlider_6->value();
-}
-
-
-void MainWindow::setTheta()
-{
-    m_theta = ui->horizontalSlider_7->value();
-}
-
-void MainWindow::setPhi()
-{
-    m_phi = ui->horizontalSlider_8->value();
-=======
->>>>>>> main
 }
 
 MainWindow::~MainWindow()
@@ -212,7 +121,6 @@ void MainWindow::DrawGraph(QImage img)
     if(m_bDewarp)
     {
         cv::Mat cv_img = cv::Mat(img.height(), img.width(), CV_8UC3, (cv::Scalar*)img.scanLine(0));
-        m_fisheye->fisheye2equirect(cv_img, cv_img, cv::Size(1408, 1408), m_aperture, m_dx, m_dy, m_radius, false);
         //m_fisheye->equirect2persp(cv_img, cv_img, 120.0, m_theta, m_phi, 1408, 1408);
 
         QImage img_dewarped = QImage((uchar*) cv_img.data, cv_img.cols, cv_img.rows, cv_img.step, QImage::Format_RGB888);
