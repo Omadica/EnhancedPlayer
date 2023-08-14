@@ -76,7 +76,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>10.31.4.78</string>
+           <string>192.168.10.195</string>
           </property>
          </widget>
          <widget class="QLabel" name="label">
@@ -160,7 +160,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>/stream0</string>
+           <string>/profile0</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_4">
@@ -400,7 +400,7 @@
      <x>0</x>
      <y>0</y>
      <width>1272</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

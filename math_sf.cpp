@@ -108,7 +108,6 @@ void cal::vfast_erfinv(int n, double const * in, double * out) {
 
 #else // ifdef HAVE_MKL
 
-
 /**
 * These are simply threaded for-loops that call the standard
 * math library functions.

@@ -13,9 +13,7 @@
 #include <unordered_map>
 #include <QGraphicsPixmapItem>
 #include <QtOpenGLWidgets/QOpenGLWidget>
-#include "FFmpegLog.h"
-#include <cuda.h>
-#include <cuda_runtime.h>
+//#include "FFmpegLog.h"
 
 extern "C"
 {
@@ -42,17 +40,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      * @brief Set-up the user interface
      */
     ui->setupUi(this);
-
-    /**
-     * check Nvidia device(s) (The device search has to be improved)
-     */
-    int nGpu = 0;
-    cuDeviceGetCount(&nGpu);
-
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0);
-    ui->deviceNames->addItem(QString(prop.name));
-
 
 
     /**
@@ -94,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
+
 }
 
 MainWindow::~MainWindow()
@@ -154,7 +142,10 @@ void MainWindow::RtspConnection()
 
 
     if (ret < 0)
+    {
         qDebug() << "Error to create AvFormatContext";
+        return;
+    }
     else
         ui->label_6->setText(QString("connected"));
 
