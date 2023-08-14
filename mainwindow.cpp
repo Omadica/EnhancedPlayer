@@ -13,9 +13,7 @@
 #include <unordered_map>
 #include <QGraphicsPixmapItem>
 #include <QtOpenGLWidgets/QOpenGLWidget>
-#include "FFmpegLog.h"
-#include "ui_FishEye.h"
-
+//#include "FFmpegLog.h"
 
 extern "C"
 {
@@ -42,11 +40,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
      * @brief Set-up the user interface
      */
     ui->setupUi(this);
-
-    /**
-     * check Nvidia device(s) (The device search has to be improved)
-     */
-
 
 
     /**
@@ -89,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
+
 }
 
 
@@ -249,7 +243,10 @@ void MainWindow::RtspConnection()
 
 
     if (ret < 0)
+    {
         qDebug() << "Error to create AvFormatContext";
+        return;
+    }
     else
         ui->label_6->setText(QString("connected"));
 

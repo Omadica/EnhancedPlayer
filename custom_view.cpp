@@ -1,6 +1,4 @@
 #include "custom_view.h"
-#include "mainwindow.h"
-#include "qgraphicsitem.h"
 #include <QWidget>
 #include <QModelIndex>
 #include <QMenu>
@@ -26,95 +24,92 @@ void custom_view::wheelEvent(QWheelEvent *event)
 }
 
 
-void custom_view::mousePressEvent(QMouseEvent *event)
-{
-    QPoint pos = event->pos();
+//void custom_view::mousePressEvent(QMouseEvent *event)
+//{
+//    /*
+//    QPoint pos = event->pos();
+
+//    if(event->button() == Qt::RightButton)
+//    {
+//        QMenu *menu = new QMenu(this);
 
     if(event->button() == Qt::RightButton)
     {
-
         QMenu *menu = new QMenu(this);
 
-        QAction *dewarp = new QAction(this);
-        dewarp->setIconVisibleInMenu(true);
-        dewarp->setText(tr("Dewarp FishEye"));
+//        QAction *zoom1 = new QAction(this);
+//        zoom1->setIconVisibleInMenu(true);
+//        zoom1->setText(tr("Reset zoom 1:1"));
 
-        QAction *zoom1 = new QAction(this);
-        zoom1->setIconVisibleInMenu(true);
-        zoom1->setText(tr("Reset zoom 1:1"));
+//        QAction *undistortLens = new QAction(this);
+//        undistortLens->setIconVisibleInMenu(true);
+//        undistortLens->setText(tr("Lens correction"));
 
-        QAction *undistortLens = new QAction(this);
-        undistortLens->setIconVisibleInMenu(true);
-        undistortLens->setText(tr("Lens correction"));
+//        menu->addAction(zoom1);
+//        menu->addAction(undistortLens);
+//        menu->addAction(dewarp);
+//        menu->popup(this->viewport()->mapToGlobal(pos));
+//    }
+//    else if(event->button() == Qt::LeftButton)
+//    {
 
         menu->addAction(zoom1);
         menu->addAction(undistortLens);
         menu->addAction(dewarp);
         menu->popup(this->viewport()->mapToGlobal(pos));
-
-        connect(dewarp, SIGNAL(triggered()), this, SLOT(clicked_on_dewarp()));
     }
     else if(event->button() == Qt::LeftButton)
     {
 
-        m_bIsMousePressed = true;
-        topLeft = pos;
-        bottomRight = topLeft;
-        qDebug() << pos << " " << m_bIsMousePressed;
-    }
-}
-
-void custom_view::clicked_on_dewarp(){
-    emit click_on_dewarp();
-}
-
-
-
 //void custom_view::mouseMoveEvent(QMouseEvent *event)
 //{
+//    /*
 //    if (m_bIsMousePressed)
 //    {
 //        QPoint pos = event->pos();
 //        bottomRight = pos;
 //        qDebug() << pos << " " << m_bIsMousePressed;
+//        //update();
 //    }
-//    update();
-//}
+//    */
 
-//void custom_view::mouseReleaseEvent(QMouseEvent *event)
-//{
-//    m_bIsMousePressed = false;
-//    if(event->button() == Qt::LeftButton)
-//        rects.append(QRect(topLeft, bottomRight));
-//    qDebug() << event->pos() << " " << m_bIsMousePressed;
-//}
+void custom_view::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_bIsMousePressed)
+    {
+        QPoint pos = event->pos();
+        bottomRight = pos;
+        qDebug() << pos << " " << m_bIsMousePressed;
+    }
+    update();
+}
 
-//void custom_view::resizeEvent(QResizeEvent *) {
-//    QList<QGraphicsItem *> i = items();
-//    int window_w = width();
-//    if (window_w == 0 || i.size() != 1) return;
+void custom_view::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_bIsMousePressed = false;
+    if(event->button() == Qt::LeftButton)
+        rects.append(QRect(topLeft, bottomRight));
+    qDebug() << event->pos() << " " << m_bIsMousePressed;
+}
 
-//    auto *item = qgraphicsitem_cast<QGraphicsPixmapItem *>(i[0]);
-//    qreal img_w = static_cast<double>(item->pixmap().width());
-//    qreal factor = window_w / img_w;
-//    item->setScale(factor);
+void custom_view::resizeEvent(QResizeEvent *) {
+    QList<QGraphicsItem *> i = items();
+    int window_w = width();
+    if (window_w == 0 || i.size() != 1) return;
 
-//    QRectF rect = item->boundingRect();
-//    rect.setHeight(height());
-//    rect.setWidth(width());
-//    rect.moveCenter(item->boundingRect().center());
+    auto *item = qgraphicsitem_cast<QGraphicsPixmapItem *>(i[0]);
+    qreal img_w = static_cast<double>(item->pixmap().width());
+    qreal factor = window_w / img_w;
+    item->setScale(factor);
 
-//    QGraphicsScene *s = scene();
-//    s->setSceneRect(rect);
+    QRectF rect = item->boundingRect();
+    rect.setHeight(height());
+    rect.setWidth(width());
+    rect.moveCenter(item->boundingRect().center());
 
-//    item->setTransformOriginPoint(item->boundingRect().center());
-//    centerOn(item);
-//}
+    QGraphicsScene *s = scene();
+    s->setSceneRect(rect);
 
-
-
-
-
-
-
-
+    item->setTransformOriginPoint(item->boundingRect().center());
+    centerOn(item);
+}

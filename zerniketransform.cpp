@@ -24,7 +24,7 @@ void ZernikeTransform::transformFrame()
             objp.push_back(cv::Point3f(j,i,0));
 
     std::vector<cv::String> images;
-    std::string path = "*.jpeg";
+    std::string path = "*.png";
 
     cv::glob(path, images);
     cv::Mat frame, gray;
@@ -77,20 +77,16 @@ void ZernikeTransform::transformFrame()
     */
 
     cv::Size ImgSize = cv::Size(gray.rows, gray.cols);
+    cv::calibrateCamera(objPoints, imgPoints, ImgSize, cameraMatrix, distCoeffs, R, T);
     //cv::fisheye::calibrate(objPoints, imgPoints, ImgSize, cameraMatrix, distCoeffs, R, T);
-    cv::fisheye::calibrate(objPoints, imgPoints, ImgSize, cameraMatrix, distCoeffs, R, T);
     cv::FileStorage file("cameraCalibration.ext", cv::FileStorage::WRITE);
 
     cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, ImgSize, 0.7, ImgSize);
-    // cv::fisheye::estimateNewCameraMatrixForUndistortRectify(cameraMatrix, distCoeffs, ImgSize, R, newCameraMatrix);
-
 
     file << "cameraMat" << cameraMatrix;
     file << "newCameraMat" << newCameraMatrix;
     file << "distCoeffs" << distCoeffs;
     file << "Rvec" << R;
     file << "Tvec" << T;
-    // file << "map1" << objPoints;
-    // file << "map2" << imgPoints;
     file.release();
 }
