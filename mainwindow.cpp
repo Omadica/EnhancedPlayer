@@ -83,6 +83,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
 
+<<<<<<< HEAD
 }
 
 
@@ -169,6 +170,8 @@ void MainWindow::setTheta()
 void MainWindow::setPhi()
 {
     m_phi = ui->horizontalSlider_8->value();
+=======
+>>>>>>> main
 }
 
 MainWindow::~MainWindow()
