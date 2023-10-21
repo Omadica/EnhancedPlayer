@@ -13,7 +13,8 @@
 #include <unordered_map>
 #include <QGraphicsPixmapItem>
 #include <QtOpenGLWidgets/QOpenGLWidget>
-//#include "FFmpegLog.h"
+#include <QtConcurrent/QtConcurrent>
+
 
 extern "C"
 {
@@ -22,6 +23,10 @@ extern "C"
 #include <libavcodec/bsf.h>
 #include <libavfilter/avfilter.h>
 }
+
+
+int workerCount=10;
+static std::shared_ptr<TaskProcessor::ThreadPool> m_threadPool = std::make_shared<TaskProcessor::ThreadPool>(workerCount);
 
 std::unordered_map<AVCodecID, QString> Supported_codec = {
     {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
@@ -50,7 +55,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QList<QAudioDevice> audio = devs.audioInputs();
 
     auto col = 0;
-    for (const auto &it : cams){
+    for (const auto &it : cams){    int workerCount=10;
+        m_threadPool = std::make_shared<TaskProcessor::ThreadPool>(workerCount);
         QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
         item->setText(0, it.description());
 
@@ -81,6 +87,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 //    ZerTrans = new ZernikeTransform();
 //    ZerTrans->transformFrame();
+
+
+    scheduler =  std::make_unique<TaskProcessor::Scheduler>(m_threadPool, workerCount);
 }
 
 MainWindow::~MainWindow()
@@ -132,10 +141,6 @@ void MainWindow::DrawGraph(QImage img)
         scene->clear();
         scene->addPixmap(QPixmap::fromImage(img));
     }
-
-
-
-
 }
 
 void MainWindow::PrintDecoderInfo(QString dec)
@@ -191,6 +196,7 @@ void MainWindow::RtspConnection()
 
 void MainWindow::StartPlayback()
 {
+
     QThread *thread = new QThread();;
     bool hw_dec = ui->checkBox->isChecked();
     bool nvidia_devices = ui->deviceNames->currentText() != "" ? true : false;

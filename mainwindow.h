@@ -8,6 +8,7 @@
 #include "FFmpegVideoDecoder.h"
 #include "zerniketransform.h"
 #include "./ui_FishEye.h"
+#include <memory.h>
 
 extern "C"
 {
@@ -62,5 +63,6 @@ private:
     int m_cx, m_cy;
     int m_dx, m_dy;
     float m_theta, m_phi;
+
 };
 #endif // MAINWINDOW_H

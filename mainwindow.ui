@@ -76,7 +76,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>192.168.10.195</string>
+           <string>192.168.1.103</string>
           </property>
          </widget>
          <widget class="QLabel" name="label">
@@ -134,7 +134,7 @@
            <string notr="true">lineedit-password-character: 9679</string>
           </property>
           <property name="text">
-           <string>admin</string>
+           <string>012345</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_3">
@@ -160,7 +160,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>/profile0</string>
+           <string>/stream1</string>
           </property>
          </widget>
          <widget class="QLabel" name="label_4">

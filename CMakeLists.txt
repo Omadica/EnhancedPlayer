@@ -10,7 +10,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(EMSDK "C:/Users/smandelli/Source/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
+#set(EMSDK "C:/Users/smandelli/Source/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
 
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}../Qt/6.5.1/msvc2019_64/lib/cmake")
@@ -75,10 +75,14 @@ endif()
 
 
 target_include_directories(EnhancedPlayer PRIVATE
-    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-    ${OpenCV_INCLUDE_DIRS}
-    ${FISH_EYE_DC_INCS}
-    ${MNDEWARP_INCS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/include"
+    "${OpenCV_INCLUDE_DIRS}"
+    "${FISH_EYE_DC_INCS}"
+    "${MNDEWARP_INCS}"
+)
+
+target_link_directories(EnhancedPlayer PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/lib"
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -87,6 +91,9 @@ target_link_libraries(EnhancedPlayer PRIVATE
     PkgConfig::LIBAV
     ${OpenCV_LIBS}
     ${FISH_EYE_DC_LIB}
+    MediaNativeShared
+    media_wrap_shared
+    task_manager_shared
 )
 
 install(TARGETS EnhancedPlayer
