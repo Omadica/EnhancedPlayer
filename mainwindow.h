@@ -7,6 +7,8 @@
 #include <QGraphicsScene>
 #include "FFmpegVideoDecoder.h"
 #include "zerniketransform.h"
+#include "LoggerService.h"
+#include "TaskProcessor.h"
 #include "./ui_FishEye.h"
 #include <memory.h>
 
@@ -63,6 +65,8 @@ private:
     int m_cx, m_cy;
     int m_dx, m_dy;
     float m_theta, m_phi;
+    std::shared_ptr<spdlog::logger> m_logger;
+
 
 };
 #endif // MAINWINDOW_H
