@@ -19,7 +19,7 @@ extern "C"
 
 
 FFmpegVideoDecoder::FFmpegVideoDecoder(QObject *parent, QString rtsp, bool hw_accel, bool nvidia_dev, QString HWdec_name)
-    : QObject{parent}, rtsp_addr(rtsp), bool_hw_accel(hw_accel), nv_hw_dev(nvidia_dev), HWDec_name(HWdec_name),
+    : QObject{parent}, rtsp_addr(rtsp), bool_hw_accel(false), nv_hw_dev(nvidia_dev), HWDec_name(HWdec_name),
     m_pCctx(nullptr),
     codec(nullptr),
     m_pImg_conversion(nullptr),
@@ -58,6 +58,7 @@ void FFmpegVideoDecoder::decode()
     bool bDecodeOutSemiPlanar = false;
     uint8_t* pFrame;
     int ret = 0;
+    m_pIc = avformat_alloc_context();
     ret = avformat_open_input(&m_pIc, rtsp_addr.toStdString().c_str(), NULL, NULL);
 
     if (ret < 0)

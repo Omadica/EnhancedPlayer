@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1272</width>
-    <height>1067</height>
+    <width>738</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,388 +16,181 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
+  <property name="iconSize">
+   <size>
+    <width>16</width>
+    <height>16</height>
+   </size>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QTabWidget" name="tabWidget">
-        <property name="maximumSize">
-         <size>
-          <width>231</width>
-          <height>65536</height>
-         </size>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tab">
-         <attribute name="title">
-          <string>Local cameras</string>
-         </attribute>
-         <widget class="QTreeWidget" name="treeWidget">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>221</width>
-            <height>81</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <column>
-           <property name="text">
-            <string>Camera</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Max. Resolution</string>
-           </property>
-          </column>
-         </widget>
-         <widget class="QPushButton" name="pushButton_2">
-          <property name="geometry">
-           <rect>
-            <x>50</x>
-            <y>140</y>
-            <width>100</width>
-            <height>32</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Playback</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tab_2">
-         <attribute name="title">
-          <string>Network RTSP</string>
-         </attribute>
-         <widget class="QLineEdit" name="textIP">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>9</y>
-            <width>133</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>192.168.1.103</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>37</y>
-            <width>16</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>IP:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="textUser">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>60</y>
-            <width>133</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>admin</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_2">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>88</y>
-            <width>61</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>User:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="textPasswd">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>110</y>
-            <width>133</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">lineedit-password-character: 9679</string>
-          </property>
-          <property name="text">
-           <string>012345</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_3">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>138</y>
-            <width>91</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Password:</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="textOptions">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>161</y>
-            <width>133</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>/stream1</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_4">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>189</y>
-            <width>45</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Options:</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>211</y>
-            <width>75</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Connect</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_17">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>558</y>
-            <width>16</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="btnPlayback">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>570</y>
-            <width>75</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Playback</string>
-          </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>-1</x>
-            <y>241</y>
-            <width>319</width>
-            <height>311</height>
-           </rect>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="2" column="2">
-            <widget class="QCheckBox" name="checkBox">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>Resolution:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>N/A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Status:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="label_13">
-             <property name="text">
-              <string>FPS:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="2">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>N/A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="2">
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>N/A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="16" column="0">
-            <widget class="QLabel" name="label_16">
-             <property name="text">
-              <string>HW Decoder:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>N/A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Pix Format:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>HW Accel:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="2">
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>N/A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>Codec:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="16" column="2">
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item>
-              <widget class="QComboBox" name="comboBox"/>
-             </item>
-             <item>
-              <widget class="QComboBox" name="deviceNames"/>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QPushButton" name="btnTakePicture">
-          <property name="geometry">
-           <rect>
-            <x>110</x>
-            <y>570</y>
-            <width>101</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Take Picture</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="textSave">
-          <property name="geometry">
-           <rect>
-            <x>90</x>
-            <y>190</y>
-            <width>133</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="btnStop">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>600</y>
-            <width>75</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Stop</string>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="maximumSize">
+           <size>
+            <width>231</width>
+            <height>65536</height>
+           </size>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Network RTSP</string>
+           </attribute>
+           <widget class="QLabel" name="label_17">
+            <property name="geometry">
+             <rect>
+              <x>9</x>
+              <y>558</y>
+              <width>16</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+           <widget class="QTreeWidget" name="treeWidget_2">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>211</width>
+              <height>621</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="mouseTracking">
+             <bool>false</bool>
+            </property>
+            <property name="tabletTracking">
+             <bool>false</bool>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="locale">
+             <locale language="English" country="UnitedStates"/>
+            </property>
+            <property name="inputMethodHints">
+             <set>Qt::ImhNone</set>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragOnly</enum>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+            <property name="autoExpandDelay">
+             <number>1</number>
+            </property>
+            <property name="uniformRowHeights">
+             <bool>true</bool>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="animated">
+             <bool>true</bool>
+            </property>
+            <property name="allColumnsShowFocus">
+             <bool>true</bool>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="headerHidden">
+             <bool>true</bool>
+            </property>
+            <attribute name="headerVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerCascadingSectionResizes">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerHighlightSections">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerShowSortIndicator" stdset="0">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Local cameras</string>
+           </attribute>
+           <widget class="QTreeWidget" name="treeWidget">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>221</width>
+              <height>81</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <column>
+             <property name="text">
+              <string>Camera</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Max. Resolution</string>
+             </property>
+            </column>
+           </widget>
+           <widget class="QPushButton" name="pushButton_2">
+            <property name="geometry">
+             <rect>
+              <x>50</x>
+              <y>140</y>
+              <width>100</width>
+              <height>32</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Playback</string>
+            </property>
+           </widget>
+          </widget>
+         </widget>
+        </item>
         <item>
          <widget class="custom_view" name="graphicsView"/>
         </item>
@@ -412,8 +205,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1272</width>
-     <height>22</height>
+     <width>738</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

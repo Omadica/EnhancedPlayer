@@ -16,196 +16,48 @@
 #include <QtConcurrent/QtConcurrent>
 
 
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavcodec/bsf.h>
-#include <libavfilter/avfilter.h>
-}
-
-std::unordered_map<AVCodecID, QString> Supported_codec = {
-    {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
-    {AV_CODEC_ID_H264, QString("AV1(H264)")},
-    {AV_CODEC_ID_MJPEG, QString("MJPEG")},
-};
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
 
     size_t nthreads = std::thread::hardware_concurrency();
-
-    /**
-     * @brief Set-up the user interface
-     */
     ui->setupUi(this);
 
-    m_logger = spdlog::get("NativeLog");
-    m_logger->info("Start the application");
-    m_logger->info("Number of threads: {}", nthreads);
+    ui->treeWidget_2->setColumnCount(1);
+    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("../artifacts/oxygen-icons/16x16/places/server-database.png"));
+    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("../artifacts/oxygen-icons/16x16/apps/digikam.png"));
 
-    /**
-     * @brief Create QmediaDev and search for local cams
-     */
-    QMediaDevices devs = new QMediaDevices();
-    QList<QCameraDevice> cams = devs.videoInputs(); // video input has member "last"
-    QList<QAudioDevice> audio = devs.audioInputs();
 
-    auto col = 0;
-    for (const auto &it : cams){    int workerCount=10;
-        QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
-        item->setText(0, it.description());
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
+    treeItem->setIcon(0, icon_DVR);
+    treeItem->setText(0, "DVR1");
 
-        auto res_max = it.photoResolutions().first();
-        auto res_min = it.photoResolutions().last();
-        item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
+    for(int i =0; i<3; i++){
+        QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem);
+        cameraItem->setIcon(0, icon_cam);
+        cameraItem->setText(0, "Camera");
+        treeItem->addChild(cameraItem);
     }
 
-    QIcon p = QIcon(QPixmap::fromImage(QImage(16, 16 , QImage::Format_RGB888)));
-    this->setWindowIcon(p);
+    QTreeWidgetItem *treeItem2 = new QTreeWidgetItem(ui->treeWidget_2);
+    treeItem2->setIcon(0, icon_DVR);
+    treeItem2->setText(0, "DVR2");
 
-    /**/
-    scene = new QGraphicsScene(this);
-    ui->graphicsView->setScene(scene);
+    for(int i =0; i<5; i++){
+        QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem2);
+        cameraItem->setIcon(0, icon_cam);
+        cameraItem->setText(0, "Camera");
+        treeItem2->addChild(cameraItem);
+    }
 
-    numPic = 1;
-    namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
-    ui->textSave->setText(namePic);
 
-    /**
-     * @brief Rtsp connection, check if the URI is available
-     */
-    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
-    connect(ui->btnTakePicture, SIGNAL(clicked(bool)), SLOT(TakePicture()));
-    connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
-    connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
-    connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
 
-//    ZerTrans = new ZernikeTransform();
-//    ZerTrans->transformFrame();
+    treeItem->setExpanded(true);
+    treeItem2->setExpanded(true);
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::loadDecoders()
-{
-    const AVCodec * codec = avcodec_find_decoder(AV_CODEC_ID_HEVC);
-
-    for (int i = 0;; i++) {
-        const AVCodecHWConfig *config_hevc = avcodec_get_hw_config(codec, i);
-        if(!config_hevc)
-            break;
-        ui->comboBox->addItem(QString(av_hwdevice_get_type_name(config_hevc->device_type)));
-    }
-}
-
-void MainWindow::resetDecoder()
-{
-    decoder->deleteLater();
-    emit stopDecodingThread();
-
-}
-
-void MainWindow::TakePicture()
-{
-    m_FrameImage.save(namePic);
-    numPic++;
-    namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
-    ui->textSave->setText(namePic);
-}
-
-void MainWindow::DrawGraph(QImage img)
-{
-    m_FrameImage = img;
-    if(m_bDewarp)
-    {
-        cv::Mat cv_img = cv::Mat(img.height(), img.width(), CV_8UC3, (cv::Scalar*)img.scanLine(0));
-        //m_fisheye->equirect2persp(cv_img, cv_img, 120.0, m_theta, m_phi, 1408, 1408);
-
-        QImage img_dewarped = QImage((uchar*) cv_img.data, cv_img.cols, cv_img.rows, cv_img.step, QImage::Format_RGB888);
-        cv_img.release();
-
-        scene->clear();
-        scene->addPixmap(QPixmap::fromImage(img_dewarped));
-    } else {
-        scene->clear();
-        scene->addPixmap(QPixmap::fromImage(img));
-    }
-}
-
-void MainWindow::PrintDecoderInfo(QString dec)
-{
-    ui->label_17->setText(dec);
-}
-
-void MainWindow::RtspConnection()
-{
-    int ret = 0;
-    m_pFormatContext = avformat_alloc_context();
-
-
-    rtsp_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text() + ui->textOptions->text();
-    ret = avformat_open_input(&m_pFormatContext, rtsp_addr.toStdString().c_str(), NULL, NULL);
-
-
-    if (ret < 0)
-    {
-        qDebug() << "Error to create AvFormatContext";
-        return;
-    }
-    else
-        ui->label_6->setText(QString("connected"));
-
-
-    ret = avformat_find_stream_info(m_pFormatContext, NULL);
-    if(ret < 0)
-        qDebug() << "Error to find stream";
-
-    int nVideoStream = 0;
-    int nAudioStream = 0;
-
-    for(unsigned int i=0; i < m_pFormatContext->nb_streams; i++)
-    {
-        if (m_pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
-            ui->label_10->setText(QString::number(m_pFormatContext->streams[i]->codecpar->width) + "X" + QString::number(m_pFormatContext->streams[i]->codecpar->height));
-            auto codec = Supported_codec.find(m_pFormatContext->streams[i]->codecpar->codec_id);
-            ui->label_11->setText(codec->second);
-            ui->label_12->setText(QString::number(m_pFormatContext->streams[i]->codecpar->format));
-            ui->label_14->setText(QString::number(m_pFormatContext->streams[i]->r_frame_rate.num) + "/" + QString::number(m_pFormatContext->streams[i]->r_frame_rate.den));
-
-            nVideoStream = i;
-        }
-        if (m_pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-            nAudioStream = i;
-
-        if(nVideoStream == -1 || nAudioStream == -1)
-            qDebug() << "Warning: Video = " << nVideoStream << "  " << "Audio = " << nAudioStream;
-    }
-
-}
-
-void MainWindow::StartPlayback()
-{
-
-//    QThread *thread = new QThread();;
-//    bool hw_dec = ui->checkBox->isChecked();
-//    bool nvidia_devices = ui->deviceNames->currentText() != "" ? true : false;
-
-//    QString HWdecoder_name = ui->comboBox->currentText();
-//    qDebug() << HWdecoder_name.toStdString().c_str();
-
-//    decoder = new FFmpegVideoDecoder(nullptr, rtsp_addr, hw_dec, nvidia_devices, HWdecoder_name);
-//    decoder->moveToThread(thread);
-//    connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
-//    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
-//    connect(this, SIGNAL(stopDecodingThread()), thread, SLOT(quit()));
-
-//    thread->start();
-
-
 }
 
