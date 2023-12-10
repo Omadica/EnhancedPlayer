@@ -5,18 +5,11 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QGraphicsScene>
-#include "FFmpegVideoDecoder.h"
 #include "zerniketransform.h"
 #include "LoggerService.h"
 #include "TaskProcessor.h"
 #include "./ui_FishEye.h"
 #include <memory.h>
-
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-}
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
