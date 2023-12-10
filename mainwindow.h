@@ -8,7 +8,6 @@
 #include "zerniketransform.h"
 #include "LoggerService.h"
 #include "TaskProcessor.h"
-#include "./ui_FishEye.h"
 #include <memory.h>
 
 QT_BEGIN_NAMESPACE

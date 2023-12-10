@@ -64,6 +64,7 @@ endif()
 
 
 target_include_directories(EnhancedPlayer PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/TaskManager"
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Logger"
     "${OpenCV_INCLUDE_DIRS}"
