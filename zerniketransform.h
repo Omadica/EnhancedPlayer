@@ -2,12 +2,8 @@
 #define ZERNIKETRANSFORM_H
 #include "qtmetamacros.h"
 #include <string>
-#include <opencv2/opencv.hpp>
+// #include <opencv2/opencv.hpp>
 
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
 
 
 class ZernikeTransform
@@ -47,8 +43,8 @@ private:
      */
     double calibrate();
     void estimationMatrixRectify();
-    cv::Mat Camera_Matrix;
-    cv::Mat Distortion_coefficients;
+    // cv::Mat Camera_Matrix;
+    // cv::Mat Distortion_coefficients;
 
 };
 

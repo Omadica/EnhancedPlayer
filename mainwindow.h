@@ -5,8 +5,8 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QGraphicsScene>
-#include "zerniketransform.h"
-#include "LoggerService.h"
+//#include "zerniketransform.h"
+//#include "LoggerService.h"
 #include "TaskProcessor.h"
 #include <memory.h>
 
@@ -21,8 +21,10 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
     Ui::MainWindow *ui;
+
+protected slots:
+    void playVideo();
 
 };
 #endif // MAINWINDOW_H

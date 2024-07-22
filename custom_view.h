@@ -17,10 +17,16 @@ public:
 
 protected:
     virtual void wheelEvent(QWheelEvent *event) override;
+    virtual void dropEvent(QDropEvent *event) override;
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    virtual void dragMoveEvent(QDragMoveEvent *event) override;
 //    virtual void mousePressEvent(QMouseEvent *event) override;
 //    virtual void mouseMoveEvent(QMouseEvent *event) override;
 //    virtual void mouseReleaseEvent(QMouseEvent *event) override;
     //virtual void resizeEvent(QResizeEvent *) override;
+signals:
+    void callVideo();
+
 
 private:
     QList<QRect> rects;

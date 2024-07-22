@@ -2,6 +2,7 @@
 #include <QWidget>
 #include <QModelIndex>
 #include <QMenu>
+#include <QMimeData>
 
 custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePressed(false)
 {
@@ -24,6 +25,29 @@ void custom_view::wheelEvent(QWheelEvent *event)
 }
 
 
+void custom_view::dropEvent(QDropEvent *event){
+    const QMimeData* mimeData =  event->mimeData();
+    if(mimeData->hasText())
+        qDebug() << "Mime has text: " << mimeData->text() ;
+    else
+        qDebug() << "Mime has NOT text" ;
+
+    qDebug() << "Drop Event" ;
+    emit callVideo();
+}
+
+
+void custom_view::dragEnterEvent(QDragEnterEvent *event) {
+    event->acceptProposedAction();
+    qDebug() << "Drag Enter Event";
+
+}
+
+void custom_view::dragMoveEvent(QDragMoveEvent *event) {
+    qDebug() << "Drag Move Envent" ;
+    event->acceptProposedAction();
+
+}
 //void custom_view::mousePressEvent(QMouseEvent *event)
 //{
 //    /*
