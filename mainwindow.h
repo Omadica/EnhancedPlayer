@@ -24,7 +24,7 @@ public:
     Ui::MainWindow *ui;
 
 protected slots:
-    void playVideo();
+    void playVideo(const QString url);
 
 };
 #endif // MAINWINDOW_H

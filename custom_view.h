@@ -25,7 +25,7 @@ protected:
 //    virtual void mouseReleaseEvent(QMouseEvent *event) override;
     //virtual void resizeEvent(QResizeEvent *) override;
 signals:
-    void callVideo();
+    void callVideo(const QString);
 
 
 private:

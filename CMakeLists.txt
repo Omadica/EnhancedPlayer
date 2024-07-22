@@ -88,6 +88,11 @@ target_link_libraries(EnhancedPlayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
     PkgConfig::LIBAV
+    task_manager
+    task_processor
+    media_wrap
+    media_reader
+    media_decoder
 )
 
 install(TARGETS EnhancedPlayer

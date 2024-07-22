@@ -13,14 +13,35 @@
 #include <QString>
 #include <unordered_map>
 #include <QGraphicsPixmapItem>
+#include <TaskManager.h>
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QtConcurrent/QtConcurrent>
+#include <memory>
+
+static std::shared_ptr<TaskManager::ThreadPool> threadpool;
+static std::shared_ptr<TaskManager::Scheduler> scheduler;
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    const spdlog::level::level_enum log_level = spdlog::level::debug;
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("LiveJob.log", true);
 
+    console_sink->set_level(log_level);
+    file_sink->set_level(log_level);
+    std::vector<spdlog::sink_ptr> sinks{ console_sink, file_sink};
+    auto m_logger = std::make_shared<spdlog::logger>("NativeLog", begin(sinks), end(sinks));
+    m_logger->set_level(log_level);
+    m_logger->enable_backtrace(32);
+    // spdlog::register_logger(m_logger);
+
+    MediaWrapper::AV::init();
     size_t nthreads = std::thread::hardware_concurrency();
+    threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
+    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads*20);
+
+
     ui->setupUi(this);
 
     if(!ui->graphicsView->acceptDrops()){
@@ -61,12 +82,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         treeItem2->addChild(cameraItem);
     }
 
-
     connect(ui->graphicsView, &custom_view::callVideo, this, &MainWindow::playVideo);
-
-
-
-
 
     treeItem->setExpanded(true);
     treeItem2->setExpanded(true);
@@ -74,11 +90,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 
-void MainWindow::playVideo()
+void MainWindow::playVideo(const QString url)
 {
-    qDebug() << "Reproducing video";
-}
+    qDebug() << "Reproducing video from " << url ;
+    const std::string URL = "rstp://admin:admin@" + url.toStdString() + "/stream1";
+    qDebug() << "Reproducing video from " << URL ;
+    auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
+    auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
+        auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+        context->set_processor(std::move(job));
+        context->initializeProcessorContext();
+        context->readAndDecode();
+    });
 
+    fut.wait();
+}
 
 
 MainWindow::~MainWindow()

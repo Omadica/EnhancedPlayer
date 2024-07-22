@@ -33,7 +33,7 @@ void custom_view::dropEvent(QDropEvent *event){
         qDebug() << "Mime has NOT text" ;
 
     qDebug() << "Drop Event" ;
-    emit callVideo();
+    emit callVideo(mimeData->text());
 }
 
 
