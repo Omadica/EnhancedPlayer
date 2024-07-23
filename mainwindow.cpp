@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QIcon>
 #include <QTimer>
+#include <QtConcurrent/QtConcurrent>
 #include "mainwindow.h"
 #include "myqttreewidget.h"
 #include "./ui_mainwindow.h"
@@ -17,10 +18,8 @@
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QtConcurrent/QtConcurrent>
 #include <memory>
-
 static std::shared_ptr<TaskManager::ThreadPool> threadpool;
 static std::shared_ptr<TaskManager::Scheduler> scheduler;
-
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -44,10 +43,29 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->setupUi(this);
 
-    if(!ui->graphicsView->acceptDrops()){
+    if(!ui->graphicsView1->acceptDrops()){
         qDebug() << "Enabled AcceptDrops";
-        ui->graphicsView->setAcceptDrops(true);
+        ui->graphicsView1->setAcceptDrops(true);
     }
+
+    if(!ui->graphicsView2->acceptDrops()){
+        qDebug() << "Enabled AcceptDrops";
+        ui->graphicsView1->setAcceptDrops(true);
+    }
+
+    if(!ui->graphicsView3->acceptDrops()){
+        qDebug() << "Enabled AcceptDrops";
+        ui->graphicsView1->setAcceptDrops(true);
+    }
+
+    if(!ui->graphicsView4->acceptDrops()){
+        qDebug() << "Enabled AcceptDrops";
+        ui->graphicsView1->setAcceptDrops(true);
+    }
+
+    scene = new QGraphicsScene(this);
+    ui->graphicsView1->setScene(scene);
+
 
 
     ui->treeWidget_2->setColumnCount(1);
@@ -73,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     treeItem2->setIcon(0, icon_DVR);
     treeItem2->setText(0, "DVR1");
 
-    const std::string camerasSubnet4[3] = {"10.31.4.142", "10.31.4.146", "10.31.4.127"};
+    const std::string camerasSubnet4[3] = {"10.31.4.99", "10.31.4.127", "10.31.4.144"};
 
     for( auto &it : camerasSubnet4){
         QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem2);
@@ -82,33 +100,65 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         treeItem2->addChild(cameraItem);
     }
 
-    connect(ui->graphicsView, &custom_view::callVideo, this, &MainWindow::playVideo);
+    connect(ui->graphicsView1, &custom_view::callVideo,
+            this, &MainWindow::playVideo);
+    connect(ui->graphicsView2, &custom_view::callVideo,
+            this, &MainWindow::playVideo);
+    connect(ui->graphicsView3, &custom_view::callVideo,
+            this, &MainWindow::playVideo);
+    connect(ui->graphicsView4, &custom_view::callVideo,
+            this, &MainWindow::playVideo);
 
     treeItem->setExpanded(true);
     treeItem2->setExpanded(true);
 
 }
 
-
 void MainWindow::playVideo(const QString url)
 {
-    qDebug() << "Reproducing video from " << url ;
-    const std::string URL = "rstp://admin:admin@" + url.toStdString() + "/stream1";
-    qDebug() << "Reproducing video from " << URL ;
-    auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
-    auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
-        auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
-        context->set_processor(std::move(job));
-        context->initializeProcessorContext();
-        context->readAndDecode();
+
+    QFuture<void> fut = QtConcurrent::run([=] {
+
+
+        std::function<void(MediaWrapper::AV::VideoFrame*)> callback = [&](MediaWrapper::AV::VideoFrame* frame) {
+            qDebug() << "Callback called";
+            std::mutex mutex;
+            std::unique_lock<std::mutex> lock(mutex);
+            lastFrame = QImage(frame->width(), frame->height(), QImage::Format_RGB888);;
+            for(int y=0; y < frame->height(); y++)
+                memcpy(
+                    lastFrame.scanLine(y),
+                    frame->raw()->data[0] + y * frame->raw()->linesize[0],
+                    frame->raw()->width*3
+                );
+
+            scene->clear();
+            scene->addPixmap(QPixmap::fromImage(lastFrame));
+
+        };
+
+        qDebug() << "Reproducing video from " << url;
+        const std::string URL = "rtsp://admin:admin@" + url.toStdString() + "/stream1";
+        qDebug() << "Reproducing video from " << URL ;
+        auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
+
+        auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
+
+            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+            context->set_processor(std::move(job));
+            context->initializeProcessorContext();
+            context->readAndDecode(callback);
+
+        });
+        fut.wait();
     });
-
-    fut.wait();
 }
-
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "Disposing UI and threads";
+    threadpool->dispose();
+    threadpool.reset();
     delete ui;
 }
 

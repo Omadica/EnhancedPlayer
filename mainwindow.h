@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QGraphicsScene>
+#include <QtConcurrent/QtConcurrent>
 //#include "zerniketransform.h"
 //#include "LoggerService.h"
 #include "TaskProcessor.h"
@@ -25,6 +26,10 @@ public:
 
 protected slots:
     void playVideo(const QString url);
+
+private:
+    QGraphicsScene *scene;
+    QImage lastFrame;
 
 };
 #endif // MAINWINDOW_H
