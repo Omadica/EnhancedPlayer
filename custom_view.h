@@ -5,8 +5,12 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QWheelEvent>
+#include <TaskManager.h>
+#include <TaskProcessor.h>
+#include <MediaWrapper.h>
 #include <QList>
 #include <QRect>
+#include <QString>
 
 class custom_view : public QGraphicsView
 {
@@ -20,15 +24,27 @@ protected:
     virtual void dropEvent(QDropEvent *event) override;
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
-//    virtual void mousePressEvent(QMouseEvent *event) override;
-//    virtual void mouseMoveEvent(QMouseEvent *event) override;
-//    virtual void mouseReleaseEvent(QMouseEvent *event) override;
-    //virtual void resizeEvent(QResizeEvent *) override;
+
+protected slots:
+    void playVideo(const QString url);
+    void drawFrame(QImage img);
+
 signals:
     void callVideo(const QString);
+    void frameRGB(QImage img);
+
 
 
 private:
+    std::shared_ptr<TaskManager::ThreadPool> threadpool;
+    std::shared_ptr<TaskManager::Scheduler> scheduler;
+
+    std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink;
+    std::shared_ptr<spdlog::sinks::basic_file_sink_mt> file_sink;
+    std::shared_ptr<spdlog::logger> m_logger;
+
+    std::function<void(MediaWrapper::AV::VideoFrame*)> callback;
+    QGraphicsScene *scene;
     QList<QRect> rects;
     bool m_bIsMousePressed;
     QPoint topLeft;

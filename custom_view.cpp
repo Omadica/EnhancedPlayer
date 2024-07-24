@@ -2,10 +2,38 @@
 #include <QWidget>
 #include <QModelIndex>
 #include <QMenu>
+#include <QtConcurrent/QtConcurrent>
 #include <QMimeData>
+
+
+static QThreadPool qtPool;
 
 custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePressed(false)
 {
+    const spdlog::level::level_enum log_level = spdlog::level::critical;
+    console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("LiveJob.log", true);
+
+    console_sink->set_level(log_level);
+    file_sink->set_level(log_level);
+    std::vector<spdlog::sink_ptr> sinks{ console_sink, file_sink};
+    m_logger = std::make_shared<spdlog::logger>("NativeLog", begin(sinks), end(sinks));
+    m_logger->set_level(log_level);
+    m_logger->enable_backtrace(32);
+
+
+    MediaWrapper::AV::init();
+
+    size_t nthreads = std::thread::hardware_concurrency();
+    threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
+    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads*20);
+
+    this->acceptDrops();
+    scene = new QGraphicsScene(this);
+    this->setScene(scene);
+
+    connect(this, &custom_view::callVideo, this, &custom_view::playVideo);
+    connect(this, &custom_view::frameRGB, this, &custom_view::drawFrame);
 
 }
 
@@ -24,7 +52,6 @@ void custom_view::wheelEvent(QWheelEvent *event)
     }
 }
 
-
 void custom_view::dropEvent(QDropEvent *event){
     const QMimeData* mimeData =  event->mimeData();
     if(mimeData->hasText())
@@ -32,8 +59,53 @@ void custom_view::dropEvent(QDropEvent *event){
     else
         qDebug() << "Mime has NOT text" ;
 
-    qDebug() << "Drop Event" ;
+    qDebug() << "Drop camera " << mimeData->text() << " on cell " << this->objectName();
     emit callVideo(mimeData->text());
+}
+
+void custom_view::playVideo(const QString url)
+{
+    qDebug() << "Play Video";
+    QFuture<void> fut = QtConcurrent::run([=] {
+
+        callback = [&](MediaWrapper::AV::VideoFrame* frame) {
+            qDebug() << "Callback called";
+            QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);;
+            for(int y=0; y < frame->height(); y++)
+                memcpy(
+                    lastFramepp.scanLine(y),
+                    frame->raw()->data[0] + y * frame->raw()->linesize[0],
+                    frame->raw()->width*3
+                    );
+
+
+            emit frameRGB(lastFramepp);
+        };
+
+
+        qDebug() << "Reproducing video from " << url;
+        const std::string URL = "rtsp://admin:admin@" + url.toStdString() + "/stream2";
+        qDebug() << "Reproducing video from " << URL ;
+        auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
+
+        auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
+            qDebug() << "Hello from Lambda";
+
+            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+            context->set_processor(std::move(job));
+            context->initializeProcessorContext();
+            context->readAndDecode(callback);
+
+        });
+        fut.wait();
+    });
+}
+
+
+void custom_view::drawFrame(QImage img)
+{
+    scene->clear();
+    scene->addPixmap(QPixmap::fromImage(img));
 }
 
 
@@ -44,117 +116,6 @@ void custom_view::dragEnterEvent(QDragEnterEvent *event) {
 }
 
 void custom_view::dragMoveEvent(QDragMoveEvent *event) {
-    qDebug() << "Drag Move Envent" ;
+    // qDebug() << "Drag Move Envent" ;
     event->acceptProposedAction();
-
 }
-//void custom_view::mousePressEvent(QMouseEvent *event)
-//{
-//    /*
-//    QPoint pos = event->pos();
-//    if(event->button() == Qt::RightButton)
-//    {
-//        QMenu *menu = new QMenu(this);
-
-//        QAction *zoom1 = new QAction(this);
-//        zoom1->setIconVisibleInMenu(true);
-//        zoom1->setText(tr("Reset zoom 1:1"));
-
-//        QAction *undistortLens = new QAction(this);
-//        undistortLens->setIconVisibleInMenu(true);
-//        undistortLens->setText(tr("Lens correction"));
-
-//        menu->addAction(zoom1);
-//        menu->addAction(undistortLens);
-//        menu->addAction(dewarp);
-//        menu->popup(this->viewport()->mapToGlobal(pos));
-//    }
-//    else if(event->button() == Qt::LeftButton)
-//    {
-//        QAction *dewarp = new QAction(this);
-//        dewarp->setIconVisibleInMenu(true);
-//        dewarp->setText(tr("Dewarp FishEye"));
-
-//        QAction *zoom1 = new QAction(this);
-//        zoom1->setIconVisibleInMenu(true);
-//        zoom1->setText(tr("Reset zoom 1:1"));
-
-//        QAction *undistortLens = new QAction(this);
-//        undistortLens->setIconVisibleInMenu(true);
-//        undistortLens->setText(tr("Lens correction"));
-
-
-//        menu->addAction(zoom1);
-//        menu->addAction(undistortLens);
-//        menu->addAction(dewarp);
-//        menu->popup(this->viewport()->mapToGlobal(pos));
-//    }
-//    else if(event->button() == Qt::LeftButton)
-//    {
-
-
-//void custom_view::mouseMoveEvent(QMouseEvent *event)
-//{
-//    /*
-//    if (m_bIsMousePressed)
-//    {
-//        QPoint pos = event->pos();
-//        bottomRight = pos;
-//        qDebug() << pos << " " << m_bIsMousePressed;
-//        //update();
-//    }
-//    */
-//        m_bIsMousePressed = true;
-//        topLeft = pos;
-//        bottomRight = topLeft;
-//        qDebug() << pos << " " << m_bIsMousePressed;
-//    }
-//    */
-//}
-
-
-//void custom_view::mouseMoveEvent(QMouseEvent *event)
-//{
-//    /*
-//    if (m_bIsMousePressed)
-//    {
-//        QPoint pos = event->pos();
-//        bottomRight = pos;
-//        qDebug() << pos << " " << m_bIsMousePressed;
-//        //update();
-//    }
-//    */
-
-//}
-
-//void custom_view::mouseReleaseEvent(QMouseEvent *event)
-//{
-//    /*
-//    m_bIsMousePressed = false;
-//    if(event->button() == Qt::LeftButton)
-//        rects.append(QRect(topLeft, bottomRight));
-//    qDebug() << event->pos() << " " << m_bIsMousePressed;
-//    */
-//}
-
-//void custom_view::resizeEvent(QResizeEvent *) {
-//    QList<QGraphicsItem *> i = items();
-//    int window_w = width();
-//    if (window_w == 0 || i.size() != 1) return;
-
-//    auto *item = qgraphicsitem_cast<QGraphicsPixmapItem *>(i[0]);
-//    qreal img_w = static_cast<double>(item->pixmap().width());
-//    qreal factor = window_w / img_w;
-//    item->setScale(factor);
-
-//    QRectF rect = item->boundingRect();
-//    rect.setHeight(height());
-//    rect.setWidth(width());
-//    rect.moveCenter(item->boundingRect().center());
-
-//    QGraphicsScene *s = scene();
-//    s->setSceneRect(rect);
-
-//    item->setTransformOriginPoint(item->boundingRect().center());
-//    centerOn(item);
-//}
