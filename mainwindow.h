@@ -4,12 +4,12 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QThreadPool>
-#include <QGraphicsScene>
 #include <QtConcurrent/QtConcurrent>
-//#include "zerniketransform.h"
-//#include "LoggerService.h"
-#include "TaskProcessor.h"
+#include <QChart>
+#include <QChartView>
+#include <QLineSeries>
 #include <memory.h>
+#include "LoggerService.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,6 +23,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     Ui::MainWindow *ui;
+
+protected slots:
+    void jitterPlot(int64_t pts);
+
+private:
+    QChartView *chartView;
+    QLineSeries *series;
+    QChart *chart;
 
 };
 #endif // MAINWINDOW_H

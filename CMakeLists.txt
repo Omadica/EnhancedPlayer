@@ -16,13 +16,12 @@ list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
 
 add_subdirectory(artifacts/sigslot)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia Charts)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia Charts)
 
 find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED)
-# find_package(OpenCV REQUIRED)
 
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavcodec
@@ -54,6 +53,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_TR}
         test.qml
         myqttreewidget.h myqttreewidget.cpp
+        chartviewjitter.h chartviewjitter.cpp
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
@@ -78,21 +78,30 @@ target_include_directories(EnhancedPlayer PRIVATE
     "${LIBAV_INCLUDE_DIRS}"
     "${Boost_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/sigslot/include/sigslot"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/include"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/include"
 )
 
 target_link_directories(EnhancedPlayer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug/lib"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/build/Debug"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/build/lib/Debug"
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
+    Qt${QT_VERSION_MAJOR}::Charts
     PkgConfig::LIBAV
     task_manager
     task_processor
     media_wrap
     media_reader
     media_decoder
+    libcurl-d_imp
+    curlpp
+
+
 )
 
 install(TARGETS EnhancedPlayer

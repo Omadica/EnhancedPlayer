@@ -32,8 +32,7 @@ protected slots:
 signals:
     void callVideo(const QString);
     void frameRGB(QImage img);
-
-
+    void framePts(int64_t pts);
 
 private:
     std::shared_ptr<TaskManager::ThreadPool> threadpool;

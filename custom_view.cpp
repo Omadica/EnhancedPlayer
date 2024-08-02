@@ -6,8 +6,6 @@
 #include <QMimeData>
 
 
-static QThreadPool qtPool;
-
 custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePressed(false)
 {
     const spdlog::level::level_enum log_level = spdlog::level::critical;
@@ -66,11 +64,15 @@ void custom_view::dropEvent(QDropEvent *event){
 void custom_view::playVideo(const QString url)
 {
     qDebug() << "Play Video";
+
     QFuture<void> fut = QtConcurrent::run([=] {
 
         callback = [&](MediaWrapper::AV::VideoFrame* frame) {
+
             qDebug() << "Callback called";
+
             QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);;
+
             for(int y=0; y < frame->height(); y++)
                 memcpy(
                     lastFramepp.scanLine(y),
@@ -78,8 +80,8 @@ void custom_view::playVideo(const QString url)
                     frame->raw()->width*3
                     );
 
-
             emit frameRGB(lastFramepp);
+            emit framePts(frame->pts().timestamp());
         };
 
 

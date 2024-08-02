@@ -1,24 +1,18 @@
-#include <QMediaDevices>
-#include <QMediaCaptureSession>
-#include <QCameraDevice>
-#include <QListView>
 #include <QPixmap>
+#include <QString>
 #include <QIcon>
-#include <QPainter>
-#include <QTimer>
 #include <QtConcurrent/QtConcurrent>
 #include "mainwindow.h"
 #include "myqttreewidget.h"
 #include "./ui_mainwindow.h"
-#include "qaudiodevice.h"
-#include <iostream>
-#include <QString>
-#include <unordered_map>
-#include <QGraphicsPixmapItem>
-#include <TaskManager.h>
-#include <QtOpenGLWidgets/QOpenGLWidget>
-#include <QtConcurrent/QtConcurrent>
-#include <memory>
+#include <QDateTime>
+#include <ostream>
+
+
+
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -30,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->treeWidget_2->setColumnCount(1);
     QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/server-database.png"));
     QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/digikam.png"));
+
+    connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
 
 
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
@@ -62,6 +58,41 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     treeItem->setExpanded(true);
     treeItem2->setExpanded(true);
 
+    chart = new QChart();
+    series = new QLineSeries();
+    chart->legend()->hide();
+    chart->addSeries(series);
+    chart->createDefaultAxes();
+    chart->setTitle("line chart");
+
+    chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
+    ui->formLayout->addWidget(chartView);
+
+
+    std::ostringstream response;
+
+    try{
+        curlpp::Easy myRequest;
+        myRequest.setOpt<curlpp::options::Url>("http://10.31.7.78:9997/v3/paths/list");
+        myRequest.setOpt<curlpp::options::UserPwd>("stefano:stefano");
+        myRequest.setOpt<curlpp::options::WriteStream>(&response);
+
+
+        myRequest.perform();
+    } catch (curlpp::RuntimeError & e) {
+        std::cout << e.what() << std::endl;
+    } catch (curlpp::LogicError & e) {
+        std::cout << e.what() << std::endl;
+    }
+
+    QByteArray ba(response.str().data(), response.str().size());
+    QJsonDocument json = QJsonDocument::fromJson(ba);
+
+    qDebug() << json;
+
+
 }
 
 
@@ -71,3 +102,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+
+
+
+void MainWindow::jitterPlot(int64_t pts)
+{
+    // qDebug() << "Add point";
+
+    // series->append(QDateTime::currentDateTime().toSecsSinceEpoch(), pts);
+    // chart->setR
+    // ui->formLayout->update();
+
+}
