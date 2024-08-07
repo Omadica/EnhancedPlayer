@@ -2,13 +2,14 @@
 #include <QString>
 #include <QIcon>
 #include <QtConcurrent/QtConcurrent>
+#include <QDateTime>
+#include <QMessageBox>
+#include <QLineEdit>
 #include "mainwindow.h"
 #include "myqttreewidget.h"
 #include "./ui_mainwindow.h"
-#include <QDateTime>
+
 #include <ostream>
-
-
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -20,43 +21,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
     ui->setupUi(this);
-
+    ui->lineEdit_3->setEchoMode(QLineEdit::Password);
     ui->treeWidget_2->setColumnCount(1);
-    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/server-database.png"));
-    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/digikam.png"));
 
     connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
+    connect(ui->pushButton, &QPushButton::released, this, &MainWindow::connetToRecorder);
 
-
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
-    treeItem->setIcon(0, icon_DVR);
-    treeItem->setText(0, "DVR2");
-
-    const std::string camerasSubnet7[2] = {"10.31.7.74", "10.31.7.79"};
-
-    for(auto &it : camerasSubnet7){
-        QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem);
-        cameraItem->setIcon(0, icon_cam);
-        cameraItem->setText(0, it.c_str());
-
-        treeItem->addChild(cameraItem);
-    }
-
-    QTreeWidgetItem *treeItem2 = new QTreeWidgetItem(ui->treeWidget_2);
-    treeItem2->setIcon(0, icon_DVR);
-    treeItem2->setText(0, "DVR1");
-
-    const std::string camerasSubnet4[3] = {"10.31.4.99", "10.31.4.127", "10.31.4."};
-
-    for( auto &it : camerasSubnet4){
-        QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem2);
-        cameraItem->setIcon(0, icon_cam);
-        cameraItem->setText(0, it.c_str());
-        treeItem2->addChild(cameraItem);
-    }
-
-    treeItem->setExpanded(true);
-    treeItem2->setExpanded(true);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView1, &custom_view::getUrlAndToken);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView2, &custom_view::getUrlAndToken);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView3, &custom_view::getUrlAndToken);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView4, &custom_view::getUrlAndToken);
 
     chart = new QChart();
     series = new QLineSeries();
@@ -70,27 +44,116 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->formLayout->addWidget(chartView);
 
+}
+
+
+void MainWindow::connetToRecorder()
+{
 
     std::ostringstream response;
+    try {
+        curlpp::Easy authRequest;
 
-    try{
-        curlpp::Easy myRequest;
-        myRequest.setOpt<curlpp::options::Url>("http://10.31.7.78:9997/v3/paths/list");
-        myRequest.setOpt<curlpp::options::UserPwd>("stefano:stefano");
-        myRequest.setOpt<curlpp::options::WriteStream>(&response);
+        QString Url = QString("http://") + ui->lineEdit->text() + QString(":8080/realms/mediamtx/protocol/openid-connect/token");
+        QString Data = QString("client_id=mediamtx&client_secret=l5czaQ0e8XiWfP94ViLDQDK1i0sp8AHY&username=") +
+                       ui->lineEdit_2->text() + QString("&password=") +
+                       ui->lineEdit_3->text() +
+                       QString("&grant_type=password");
 
+        authRequest.setOpt<curlpp::options::Url>(Url.toStdString());
+        authRequest.setOpt<curlpp::options::PostFields>(Data.toStdString());
+        authRequest.setOpt<curlpp::options::WriteStream>(&response);
 
-        myRequest.perform();
-    } catch (curlpp::RuntimeError & e) {
-        std::cout << e.what() << std::endl;
-    } catch (curlpp::LogicError & e) {
-        std::cout << e.what() << std::endl;
+        authRequest.perform();
+
+    } catch (...) {
+        QMessageBox msgBox;
+        msgBox.setText("Authentication failed.");
+        msgBox.exec();
+        return;
     }
+
 
     QByteArray ba(response.str().data(), response.str().size());
     QJsonDocument json = QJsonDocument::fromJson(ba);
+    QJsonObject jsonObj = json.object();
+    token = jsonObj["access_token"].toString();
+    expireIn = jsonObj["expires_in"].toString();
+    refExpireIn = jsonObj["refresh_expires_in"].toString();
+    refToken = jsonObj["refresh_token"].toString();
+    sesssionStat = jsonObj["session_state"].toString();
 
-    qDebug() << json;
+    ui->tabWidget->setEnabled(true);
+    ui->tab_1->setEnabled(false);
+    ui->tabWidget_2->removeTab(0);
+    ui->tab_3->setEnabled(true);
+    ui->tab_4->setEnabled(true);
+    ui->tab_5->setEnabled(true);
+    ui->tab_6->setEnabled(true);
+    ui->tab_7->setEnabled(true);
+
+    emit sendUrlAndToken(ui->lineEdit->text().toStdString(), token.toStdString());
+
+    getTopology();
+
+}
+
+void MainWindow::refreshToken()
+{
+
+}
+
+void MainWindow::logOutRevokeToken()
+{
+
+}
+
+void MainWindow::getTopology()
+{
+    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/server-database.png"));
+    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/digikam.png"));
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
+    treeItem->setIcon(0, icon_DVR);
+    treeItem->setText(0, ui->lineEdit->text());
+
+    std::vector<std::string> cameras = {};
+
+    std::ostringstream recorderResp;
+    curlpp::Easy recorderReq;
+
+    try {
+
+        recorderReq.setOpt<curlpp::options::Url>(QString(("http://")+ui->lineEdit->text()+QString(":9997/v3/paths/list?jwt=")+token).toStdString());
+        recorderReq.setOpt<curlpp::options::WriteStream>(&recorderResp);
+
+        recorderReq.perform();
+
+    } catch (...) {
+        QMessageBox msgBox;
+        msgBox.setText("GetTopology failed.");
+        msgBox.exec();
+        return;
+    }
+
+
+    QByteArray ba(recorderResp.str().data(), recorderResp.str().size());
+    QJsonDocument json = QJsonDocument::fromJson(ba);
+    QJsonObject jsonObj = json.object();
+
+    for (const QJsonValue& c : jsonObj["items"].toArray()){
+        qDebug() << c["name"].toString();
+        cameras.push_back(c["name"].toString().toStdString());
+    }
+
+
+    for(auto &it : cameras){
+        QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem);
+        cameraItem->setIcon(0, icon_cam);
+        cameraItem->setText(0, it.c_str());
+        treeItem->addChild(cameraItem);
+    }
+
+    treeItem->setExpanded(true);
 
 
 }
@@ -101,9 +164,6 @@ MainWindow::~MainWindow()
     qDebug() << "Disposing UI and threads";
     delete ui;
 }
-
-
-
 
 
 void MainWindow::jitterPlot(int64_t pts)

@@ -29,10 +29,16 @@ protected slots:
     void playVideo(const QString url);
     void drawFrame(QImage img);
 
+public slots:
+    void getUrlAndToken(std::string url, std::string token);
+
+
 signals:
     void callVideo(const QString);
     void frameRGB(QImage img);
     void framePts(int64_t pts);
+
+
 
 private:
     std::shared_ptr<TaskManager::ThreadPool> threadpool;
@@ -48,6 +54,9 @@ private:
     bool m_bIsMousePressed;
     QPoint topLeft;
     QPoint bottomRight;
+    std::string url;
+    std::string token;
+
 
 };
 

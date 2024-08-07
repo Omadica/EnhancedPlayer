@@ -51,9 +51,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_HEADERS}
         ${PROJECT_FORMS}
         ${PROJECT_TR}
-        test.qml
+
         myqttreewidget.h myqttreewidget.cpp
         chartviewjitter.h chartviewjitter.cpp
+
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()

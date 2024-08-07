@@ -8,6 +8,7 @@
 
 custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePressed(false)
 {
+
     const spdlog::level::level_enum log_level = spdlog::level::critical;
     console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("LiveJob.log", true);
@@ -61,11 +62,20 @@ void custom_view::dropEvent(QDropEvent *event){
     emit callVideo(mimeData->text());
 }
 
-void custom_view::playVideo(const QString url)
+void custom_view::getUrlAndToken(std::string urlR, std::string tokenR)
+{
+
+    url = urlR;
+    token = tokenR;
+}
+
+
+void custom_view::playVideo(const QString path)
 {
     qDebug() << "Play Video";
 
     QFuture<void> fut = QtConcurrent::run([=] {
+
 
         callback = [&](MediaWrapper::AV::VideoFrame* frame) {
 
@@ -86,7 +96,7 @@ void custom_view::playVideo(const QString url)
 
 
         qDebug() << "Reproducing video from " << url;
-        const std::string URL = "rtsp://admin:admin@" + url.toStdString() + "/stream2";
+        const std::string URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
         qDebug() << "Reproducing video from " << URL ;
         auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
 
@@ -108,6 +118,7 @@ void custom_view::drawFrame(QImage img)
 {
     scene->clear();
     scene->addPixmap(QPixmap::fromImage(img));
+
 }
 
 

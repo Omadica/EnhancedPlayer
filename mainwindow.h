@@ -24,13 +24,27 @@ public:
     ~MainWindow();
     Ui::MainWindow *ui;
 
+signals:
+    void sendUrlAndToken(std::string url, std::string token);
+
 protected slots:
     void jitterPlot(int64_t pts);
+
+    void connetToRecorder();
+    void refreshToken();
+    void logOutRevokeToken();
+
+    void getTopology(); // used also for refreshing
 
 private:
     QChartView *chartView;
     QLineSeries *series;
     QChart *chart;
 
+    QString token;
+    QString expireIn;
+    QString refExpireIn;
+    QString refToken;
+    QString sesssionStat;
 };
 #endif // MAINWINDOW_H
