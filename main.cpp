@@ -1,7 +1,11 @@
 #include "mainwindow.h"
+#include <QMainWindow>
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include <QTextEdit>
+#include <QPushButton>
+#include <QGridLayout>
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +37,30 @@ int main(int argc, char *argv[])
             break;
         }
     }
+
+    // QMainWindow w;
+
+    // QGridLayout* layout = new QGridLayout(&w);
+    // QTextEdit* txEdUser = new QTextEdit(&w);
+    // QTextEdit* txEdPass = new QTextEdit(&w);
+    // QPushButton* loginBtn = new QPushButton(&w);
+
+    // loginBtn->setText("Login");
+    // txEdUser->setText("");
+    // txEdUser->resize(w.width(),20);
+    // txEdPass->resize(w.width(),20);
+    // txEdPass->setText("");
+
+    // layout->setAlignment(txEdUser, Qt::AlignHCenter);
+    // layout->setAlignment(txEdPass, Qt::AlignHCenter);
+    // layout->setAlignment(loginBtn, Qt::AlignHCenter);
+
+    // w.setLayout(layout);
+
+    // w.show();
+
     MainWindow w;
     w.show();
+
     return a.exec();
 }

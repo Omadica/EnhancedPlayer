@@ -5,21 +5,24 @@ project(EnhancedPlayer VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_BUILD_TYPE Debug)
 
+cmake_policy(SET CMP0167 NEW)
 
 list(APPEND CMAKE_PREFIX_PATH "/home/algebrato/Qt/6.6.0/gcc_64/lib/cmake")
+set(PKG_CONFIG_EXECUTABLE "C:/Strawberry/perl/bin/pkg-config.bat")
+set(ENV{PKG_CONFIG_PATH} ${CMAKE_CURRENT_LIST_DIR}/artifacts/FFmpeg_v5.1.2_20230303/lib/pkgconfig)
+list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia)
 
-find_package(OpenGL REQUIRED)
-find_package(OpenCV REQUIRED)
+add_subdirectory(artifacts/sigslot)
 
-add_subdirectory(artifacts/MediaServices)
-
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia Charts)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia Charts)
 
 find_package(PkgConfig REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(Boost REQUIRED)
+
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavcodec
     libavformat
@@ -29,6 +32,7 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libswresample
     libswscale
 )
+
 
 set(TS_FILES EnhancedPlayer_it_IT.ts )
 
@@ -47,6 +51,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_HEADERS}
         ${PROJECT_FORMS}
         ${PROJECT_TR}
+
+        myqttreewidget.h myqttreewidget.cpp
+        chartviewjitter.h chartviewjitter.cpp
+
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
@@ -64,22 +72,37 @@ endif()
 
 
 target_include_directories(EnhancedPlayer PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/TaskManager"
-    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Logger"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug/include"
     "${OpenCV_INCLUDE_DIRS}"
+    "${LIBAV_INCLUDE_DIRS}"
+    "${Boost_INCLUDE_DIRS}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/sigslot/include/sigslot"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/include"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/include"
 )
 
 target_link_directories(EnhancedPlayer PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug/lib"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/build/Debug"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/build/lib/Debug"
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
+    Qt${QT_VERSION_MAJOR}::Charts
     PkgConfig::LIBAV
-    ${OpenCV_LIBS}
-    ${FISH_EYE_DC_LIB}
-    task_manager_shared
+    task_manager
+    task_processor
+    media_wrap
+    media_reader
+    media_decoder
+    libcurl-d_imp
+    curlpp
+
+
 )
 
 install(TARGETS EnhancedPlayer

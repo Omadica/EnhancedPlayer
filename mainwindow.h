@@ -4,19 +4,12 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QThreadPool>
-#include <QGraphicsScene>
-#include "FFmpegVideoDecoder.h"
-#include "zerniketransform.h"
-#include "LoggerService.h"
-#include "TaskProcessor.h"
-#include "./ui_FishEye.h"
+#include <QtConcurrent/QtConcurrent>
+#include <QChart>
+#include <QChartView>
+#include <QLineSeries>
 #include <memory.h>
-
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-}
+#include "LoggerService.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,44 +22,29 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-private slots:
-    void RtspConnection();
-    void StartPlayback();
-    void DrawGraph(QImage img);
-    void PrintDecoderInfo(QString dec);
-    void loadDecoders();
-    void TakePicture();
-    void resetDecoder();
+    Ui::MainWindow *ui;
 
 signals:
-    void readyForFrame();
-    void stopDecodingThread();
+    void sendUrlAndToken(std::string url, std::string token);
 
+protected slots:
+    void jitterPlot(int64_t pts);
+
+    void connetToRecorder();
+    void refreshToken();
+    void logOutRevokeToken();
+
+    void getTopology(); // used also for refreshing
 
 private:
-    // pass the ref to rstp_connection
-    AVFormatContext* m_pFormatContext;
-    QImage m_FrameImage;
-    FFmpegVideoDecoder* decoder;
-    QString rtsp_addr;
-    QString namePic;
-    QGraphicsScene *scene;
-    int numPic;
-    ZernikeTransform* ZerTrans;
+    QChartView *chartView;
+    QLineSeries *series;
+    QChart *chart;
 
-    QMainWindow *mw;
-    Ui::FishEyeWindow *w;
-    Ui::MainWindow *ui;
-    void addcamera();
-
-    bool m_bDewarp{false};
-    int m_radius, m_aperture;
-    int m_cx, m_cy;
-    int m_dx, m_dy;
-    float m_theta, m_phi;
-    std::shared_ptr<spdlog::logger> m_logger;
-
-
+    QString token;
+    QString expireIn;
+    QString refExpireIn;
+    QString refToken;
+    QString sesssionStat;
 };
 #endif // MAINWINDOW_H

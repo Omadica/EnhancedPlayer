@@ -1,211 +1,177 @@
-#include <QMediaDevices>
-#include <QMediaCaptureSession>
-#include <QCameraDevice>
-#include <QListView>
 #include <QPixmap>
-#include <QIcon>
-#include <QTimer>
-#include "mainwindow.h"
-#include "./ui_mainwindow.h"
-#include "qaudiodevice.h"
-#include <iostream>
 #include <QString>
-#include <unordered_map>
-#include <QGraphicsPixmapItem>
-#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QIcon>
 #include <QtConcurrent/QtConcurrent>
+#include <QDateTime>
+#include <QMessageBox>
+#include <QLineEdit>
+#include "mainwindow.h"
+#include "myqttreewidget.h"
+#include "./ui_mainwindow.h"
 
+#include <ostream>
 
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavcodec/bsf.h>
-#include <libavfilter/avfilter.h>
-}
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
 
-std::unordered_map<AVCodecID, QString> Supported_codec = {
-    {AV_CODEC_ID_HEVC, QString("HEVC(H265)")},
-    {AV_CODEC_ID_H264, QString("AV1(H264)")},
-    {AV_CODEC_ID_MJPEG, QString("MJPEG")},
-};
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
 
-    size_t nthreads = std::thread::hardware_concurrency();
 
-    /**
-     * @brief Set-up the user interface
-     */
     ui->setupUi(this);
+    ui->lineEdit_3->setEchoMode(QLineEdit::Password);
+    ui->treeWidget_2->setColumnCount(1);
 
-    m_logger = spdlog::get("NativeLog");
-    m_logger->info("Start the application");
-    m_logger->info("Number of threads: {}", nthreads);
+    connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
+    connect(ui->pushButton, &QPushButton::released, this, &MainWindow::connetToRecorder);
 
-    /**
-     * @brief Create QmediaDev and search for local cams
-     */
-    QMediaDevices devs = new QMediaDevices();
-    QList<QCameraDevice> cams = devs.videoInputs(); // video input has member "last"
-    QList<QAudioDevice> audio = devs.audioInputs();
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView1, &custom_view::getUrlAndToken);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView2, &custom_view::getUrlAndToken);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView3, &custom_view::getUrlAndToken);
+    connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView4, &custom_view::getUrlAndToken);
 
-    auto col = 0;
-    for (const auto &it : cams){    int workerCount=10;
-        QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
-        item->setText(0, it.description());
+    chart = new QChart();
+    series = new QLineSeries();
+    chart->legend()->hide();
+    chart->addSeries(series);
+    chart->createDefaultAxes();
+    chart->setTitle("line chart");
 
-        auto res_max = it.photoResolutions().first();
-        auto res_min = it.photoResolutions().last();
-        item->setText(1, QString::number(res_max.width()) + "X" + QString::number(res_max.height())) ;
-    }
+    chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
 
-    QIcon p = QIcon(QPixmap::fromImage(QImage(16, 16 , QImage::Format_RGB888)));
-    this->setWindowIcon(p);
-
-    /**/
-    scene = new QGraphicsScene(this);
-    ui->graphicsView->setScene(scene);
-
-    numPic = 1;
-    namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
-    ui->textSave->setText(namePic);
-
-    /**
-     * @brief Rtsp connection, check if the URI is available
-     */
-    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(RtspConnection()));
-    connect(ui->btnTakePicture, SIGNAL(clicked(bool)), SLOT(TakePicture()));
-    connect(ui->btnPlayback, SIGNAL(clicked()), this,  SLOT(StartPlayback()));
-    connect(ui->checkBox, SIGNAL(clicked()), this, SLOT(loadDecoders()));
-    connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(resetDecoder()));
-
-//    ZerTrans = new ZernikeTransform();
-//    ZerTrans->transformFrame();
+    ui->formLayout->addWidget(chartView);
 
 }
+
+
+void MainWindow::connetToRecorder()
+{
+
+    std::ostringstream response;
+    try {
+        curlpp::Easy authRequest;
+
+        QString Url = QString("http://") + ui->lineEdit->text() + QString(":8080/realms/mediamtx/protocol/openid-connect/token");
+        QString Data = QString("client_id=mediamtx&client_secret=l5czaQ0e8XiWfP94ViLDQDK1i0sp8AHY&username=") +
+                       ui->lineEdit_2->text() + QString("&password=") +
+                       ui->lineEdit_3->text() +
+                       QString("&grant_type=password");
+
+        authRequest.setOpt<curlpp::options::Url>(Url.toStdString());
+        authRequest.setOpt<curlpp::options::PostFields>(Data.toStdString());
+        authRequest.setOpt<curlpp::options::WriteStream>(&response);
+
+        authRequest.perform();
+
+    } catch (...) {
+        QMessageBox msgBox;
+        msgBox.setText("Authentication failed.");
+        msgBox.exec();
+        return;
+    }
+
+
+    QByteArray ba(response.str().data(), response.str().size());
+    QJsonDocument json = QJsonDocument::fromJson(ba);
+    QJsonObject jsonObj = json.object();
+    token = jsonObj["access_token"].toString();
+    expireIn = jsonObj["expires_in"].toString();
+    refExpireIn = jsonObj["refresh_expires_in"].toString();
+    refToken = jsonObj["refresh_token"].toString();
+    sesssionStat = jsonObj["session_state"].toString();
+
+    ui->tabWidget->setEnabled(true);
+    ui->tab_1->setEnabled(false);
+    ui->tabWidget_2->removeTab(0);
+    ui->tab_3->setEnabled(true);
+    ui->tab_4->setEnabled(true);
+    ui->tab_5->setEnabled(true);
+    ui->tab_6->setEnabled(true);
+    ui->tab_7->setEnabled(true);
+
+    emit sendUrlAndToken(ui->lineEdit->text().toStdString(), token.toStdString());
+
+    getTopology();
+
+}
+
+void MainWindow::refreshToken()
+{
+
+}
+
+void MainWindow::logOutRevokeToken()
+{
+
+}
+
+void MainWindow::getTopology()
+{
+    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/server-database.png"));
+    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/digikam.png"));
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
+    treeItem->setIcon(0, icon_DVR);
+    treeItem->setText(0, ui->lineEdit->text());
+
+    std::vector<std::string> cameras = {};
+
+    std::ostringstream recorderResp;
+    curlpp::Easy recorderReq;
+
+    try {
+
+        recorderReq.setOpt<curlpp::options::Url>(QString(("http://")+ui->lineEdit->text()+QString(":9997/v3/paths/list?jwt=")+token).toStdString());
+        recorderReq.setOpt<curlpp::options::WriteStream>(&recorderResp);
+
+        recorderReq.perform();
+
+    } catch (...) {
+        QMessageBox msgBox;
+        msgBox.setText("GetTopology failed.");
+        msgBox.exec();
+        return;
+    }
+
+
+    QByteArray ba(recorderResp.str().data(), recorderResp.str().size());
+    QJsonDocument json = QJsonDocument::fromJson(ba);
+    QJsonObject jsonObj = json.object();
+
+    for (const QJsonValue& c : jsonObj["items"].toArray()){
+        qDebug() << c["name"].toString();
+        cameras.push_back(c["name"].toString().toStdString());
+    }
+
+
+    for(auto &it : cameras){
+        QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem);
+        cameraItem->setIcon(0, icon_cam);
+        cameraItem->setText(0, it.c_str());
+        treeItem->addChild(cameraItem);
+    }
+
+    treeItem->setExpanded(true);
+
+
+}
+
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "Disposing UI and threads";
     delete ui;
 }
 
-void MainWindow::loadDecoders()
-{
-    const AVCodec * codec = avcodec_find_decoder(AV_CODEC_ID_HEVC);
 
-    for (int i = 0;; i++) {
-        const AVCodecHWConfig *config_hevc = avcodec_get_hw_config(codec, i);
-        if(!config_hevc)
-            break;
-        ui->comboBox->addItem(QString(av_hwdevice_get_type_name(config_hevc->device_type)));
-    }
-}
-
-void MainWindow::resetDecoder()
+void MainWindow::jitterPlot(int64_t pts)
 {
-    decoder->deleteLater();
-    emit stopDecodingThread();
+    // qDebug() << "Add point";
+
+    // series->append(QDateTime::currentDateTime().toSecsSinceEpoch(), pts);
+    // chart->setR
+    // ui->formLayout->update();
 
 }
-
-void MainWindow::TakePicture()
-{
-    m_FrameImage.save(namePic);
-    numPic++;
-    namePic = QString("Chessboard_") + QString::number(numPic) + ".png";
-    ui->textSave->setText(namePic);
-}
-
-void MainWindow::DrawGraph(QImage img)
-{
-    m_FrameImage = img;
-    if(m_bDewarp)
-    {
-        cv::Mat cv_img = cv::Mat(img.height(), img.width(), CV_8UC3, (cv::Scalar*)img.scanLine(0));
-        //m_fisheye->equirect2persp(cv_img, cv_img, 120.0, m_theta, m_phi, 1408, 1408);
-
-        QImage img_dewarped = QImage((uchar*) cv_img.data, cv_img.cols, cv_img.rows, cv_img.step, QImage::Format_RGB888);
-        cv_img.release();
-
-        scene->clear();
-        scene->addPixmap(QPixmap::fromImage(img_dewarped));
-    } else {
-        scene->clear();
-        scene->addPixmap(QPixmap::fromImage(img));
-    }
-}
-
-void MainWindow::PrintDecoderInfo(QString dec)
-{
-    ui->label_17->setText(dec);
-}
-
-void MainWindow::RtspConnection()
-{
-    int ret = 0;
-    m_pFormatContext = avformat_alloc_context();
-
-
-    rtsp_addr = "rtsp://" + ui->textUser->text() + ":" + ui->textPasswd->text() + "@" + ui->textIP->text() + ui->textOptions->text();
-    ret = avformat_open_input(&m_pFormatContext, rtsp_addr.toStdString().c_str(), NULL, NULL);
-
-
-    if (ret < 0)
-    {
-        qDebug() << "Error to create AvFormatContext";
-        return;
-    }
-    else
-        ui->label_6->setText(QString("connected"));
-
-
-    ret = avformat_find_stream_info(m_pFormatContext, NULL);
-    if(ret < 0)
-        qDebug() << "Error to find stream";
-
-    int nVideoStream = 0;
-    int nAudioStream = 0;
-
-    for(unsigned int i=0; i < m_pFormatContext->nb_streams; i++)
-    {
-        if (m_pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
-            ui->label_10->setText(QString::number(m_pFormatContext->streams[i]->codecpar->width) + "X" + QString::number(m_pFormatContext->streams[i]->codecpar->height));
-            auto codec = Supported_codec.find(m_pFormatContext->streams[i]->codecpar->codec_id);
-            ui->label_11->setText(codec->second);
-            ui->label_12->setText(QString::number(m_pFormatContext->streams[i]->codecpar->format));
-            ui->label_14->setText(QString::number(m_pFormatContext->streams[i]->r_frame_rate.num) + "/" + QString::number(m_pFormatContext->streams[i]->r_frame_rate.den));
-
-            nVideoStream = i;
-        }
-        if (m_pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-            nAudioStream = i;
-
-        if(nVideoStream == -1 || nAudioStream == -1)
-            qDebug() << "Warning: Video = " << nVideoStream << "  " << "Audio = " << nAudioStream;
-    }
-
-}
-
-void MainWindow::StartPlayback()
-{
-
-//    QThread *thread = new QThread();;
-//    bool hw_dec = ui->checkBox->isChecked();
-//    bool nvidia_devices = ui->deviceNames->currentText() != "" ? true : false;
-
-//    QString HWdecoder_name = ui->comboBox->currentText();
-//    qDebug() << HWdecoder_name.toStdString().c_str();
-
-//    decoder = new FFmpegVideoDecoder(nullptr, rtsp_addr, hw_dec, nvidia_devices, HWdecoder_name);
-//    decoder->moveToThread(thread);
-//    connect(thread, &QThread::started, decoder, &FFmpegVideoDecoder::decode);
-//    connect(decoder, SIGNAL(ReturnFrame(QImage)), this, SLOT(DrawGraph(QImage)));
-//    connect(this, SIGNAL(stopDecodingThread()), thread, SLOT(quit()));
-
-//    thread->start();
-
-
-}
-

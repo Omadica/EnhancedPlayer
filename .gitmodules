@@ -7,3 +7,6 @@
 [submodule "artifacts/OpenBLAS"]
 	path = artifacts/OpenBLAS
 	url = git@github.com:OpenMathLib/OpenBLAS.git
+[submodule "artifacts/oxygen-icons"]
+	path = artifacts/oxygen-icons
+	url = git@github.com:KDE/oxygen-icons.git
