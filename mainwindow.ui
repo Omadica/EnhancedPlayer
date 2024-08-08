@@ -55,7 +55,7 @@
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="documentMode">
            <bool>true</bool>
@@ -213,6 +213,9 @@
              <layout class="QGridLayout" name="gridLayout_2">
               <item row="1" column="1">
                <widget class="custom_view" name="graphicsView4">
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
                 <property name="dragMode">
                  <enum>QGraphicsView::RubberBandDrag</enum>
                 </property>
@@ -220,6 +223,9 @@
               </item>
               <item row="1" column="0">
                <widget class="custom_view" name="graphicsView3">
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
                 <property name="dragMode">
                  <enum>QGraphicsView::RubberBandDrag</enum>
                 </property>
@@ -227,6 +233,15 @@
               </item>
               <item row="0" column="1">
                <widget class="custom_view" name="graphicsView2">
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>1</number>
+                </property>
+                <property name="midLineWidth">
+                 <number>0</number>
+                </property>
                 <property name="dragMode">
                  <enum>QGraphicsView::RubberBandDrag</enum>
                 </property>
@@ -234,6 +249,18 @@
               </item>
               <item row="0" column="0">
                <widget class="custom_view" name="graphicsView1">
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Sunken</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>1</number>
+                </property>
+                <property name="midLineWidth">
+                 <number>0</number>
+                </property>
                 <property name="dragMode">
                  <enum>QGraphicsView::RubberBandDrag</enum>
                 </property>

@@ -132,3 +132,17 @@ void custom_view::dragMoveEvent(QDragMoveEvent *event) {
     // qDebug() << "Drag Move Envent" ;
     event->acceptProposedAction();
 }
+
+void custom_view::mousePressEvent(QMouseEvent* event)
+{
+    event->accept();
+    qDebug() << event->isAccepted() << " " << lineWidth();
+    setLineWidth(5);
+
+}
+
+
+
+
+
+

@@ -24,6 +24,7 @@ protected:
     virtual void dropEvent(QDropEvent *event) override;
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
 
 protected slots:
     void playVideo(const QString url);

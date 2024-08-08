@@ -2,19 +2,17 @@
 #include <QString>
 #include <QIcon>
 #include <QtConcurrent/QtConcurrent>
-#include <QDateTime>
 #include <QMessageBox>
 #include <QLineEdit>
 #include "mainwindow.h"
 #include "myqttreewidget.h"
 #include "./ui_mainwindow.h"
 
-#include <ostream>
-
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
 
+using namespace std::chrono_literals;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -33,9 +31,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView4, &custom_view::getUrlAndToken);
 
     chart = new QChart();
-    series = new QLineSeries();
+    series = new QScatterSeries();
     chart->legend()->hide();
+
     chart->addSeries(series);
+
     chart->createDefaultAxes();
     chart->setTitle("line chart");
 
@@ -43,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     chartView->setRenderHint(QPainter::Antialiasing);
 
     ui->formLayout->addWidget(chartView);
+
+    startTime = timer.now();
+    startAbsTime = timer2.now();
 
 }
 
@@ -168,10 +171,28 @@ MainWindow::~MainWindow()
 
 void MainWindow::jitterPlot(int64_t pts)
 {
-    // qDebug() << "Add point";
+    qDebug() << "Add point";
 
-    // series->append(QDateTime::currentDateTime().toSecsSinceEpoch(), pts);
-    // chart->setR
-    // ui->formLayout->update();
+    stopTime = timer.now();
+    auto t2 = timer2.now();
+
+    auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(stopTime - startTime);
+    auto t = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(t2-startAbsTime).count());
+    pts = pts/100;
+    auto jit = pts-pts0;
+
+    series->append(static_cast<double>(t), (1000/jit));
+
+    chart->axisY()->setRange(0, 60);
+    chart->axisX()->setRange(series->points().begin()->x(), t);
+    chartView->update();
+    ui->formLayout->update();
+
+    if(series->points().count() >= 500){
+        series->clear();
+    }
+
+    pts0 = pts;
+    startTime=stopTime;
 
 }

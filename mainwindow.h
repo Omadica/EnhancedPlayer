@@ -7,8 +7,9 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QChart>
 #include <QChartView>
-#include <QLineSeries>
+#include <QScatterSeries>
 #include <memory.h>
+#include <chrono>
 #include "LoggerService.h"
 
 QT_BEGIN_NAMESPACE
@@ -38,7 +39,7 @@ protected slots:
 
 private:
     QChartView *chartView;
-    QLineSeries *series;
+    QScatterSeries *series;
     QChart *chart;
 
     QString token;
@@ -46,5 +47,17 @@ private:
     QString refExpireIn;
     QString refToken;
     QString sesssionStat;
+
+    std::chrono::system_clock timer;
+    std::chrono::system_clock timer2;
+    std::chrono::system_clock::time_point startTime;
+    std::chrono::system_clock::time_point stopTime;
+
+    std::chrono::system_clock::time_point startAbsTime;
+
+    long pts0 {0};
+
+
+
 };
 #endif // MAINWINDOW_H
