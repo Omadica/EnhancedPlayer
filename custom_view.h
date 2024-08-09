@@ -1,6 +1,6 @@
 #ifndef CUSTOM_VIEW_H
 #define CUSTOM_VIEW_H
-
+#include <QtConcurrent/QtConcurrent>
 #include <QWidget>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -17,6 +17,7 @@ class custom_view : public QGraphicsView
     Q_OBJECT
 public:
     explicit custom_view(QWidget *parent = nullptr);
+    virtual ~custom_view();
 
 
 protected:
@@ -32,6 +33,7 @@ protected slots:
 
 public slots:
     void getUrlAndToken(std::string url, std::string token);
+    void getAuthMethod(std::string auth, std::string urlR, std::string userR, std::string passwd);
 
 
 signals:
@@ -57,6 +59,12 @@ private:
     QPoint bottomRight;
     std::string url;
     std::string token;
+
+    std::string authMethod;
+    std::string user;
+    std::string passwd;
+    QFuture<void> fut;
+    QPromise<void> promise;
 
 
 };

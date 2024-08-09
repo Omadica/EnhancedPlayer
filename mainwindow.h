@@ -27,6 +27,7 @@ public:
 
 signals:
     void sendUrlAndToken(std::string url, std::string token);
+    void sendAuthInternal(std::string authMethod, std::string url, std::string intUser, std::string intPass);
 
 protected slots:
     void jitterPlot(int64_t pts);
@@ -36,6 +37,7 @@ protected slots:
     void logOutRevokeToken();
 
     void getTopology(); // used also for refreshing
+    void setAuthMethod();
 
 private:
     QChartView *chartView;
@@ -52,8 +54,11 @@ private:
     std::chrono::system_clock timer2;
     std::chrono::system_clock::time_point startTime;
     std::chrono::system_clock::time_point stopTime;
-
     std::chrono::system_clock::time_point startAbsTime;
+
+    std::string authMethod;
+    std::string intUser;
+    std::string intPass;
 
     long pts0 {0};
 

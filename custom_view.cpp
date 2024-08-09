@@ -2,7 +2,6 @@
 #include <QWidget>
 #include <QModelIndex>
 #include <QMenu>
-#include <QtConcurrent/QtConcurrent>
 #include <QMimeData>
 
 
@@ -64,9 +63,17 @@ void custom_view::dropEvent(QDropEvent *event){
 
 void custom_view::getUrlAndToken(std::string urlR, std::string tokenR)
 {
-
+    authMethod = "JWT";
     url = urlR;
     token = tokenR;
+}
+
+void custom_view::getAuthMethod(std::string auth, std::string urlR, std::string userR, std::string passwdR)
+{
+    authMethod = auth;
+    url = urlR;
+    user = userR;
+    passwd = passwdR;
 }
 
 
@@ -74,7 +81,7 @@ void custom_view::playVideo(const QString path)
 {
     qDebug() << "Play Video";
 
-    QFuture<void> fut = QtConcurrent::run([=] {
+    fut = QtConcurrent::run([=] {
 
 
         callback = [&](MediaWrapper::AV::VideoFrame* frame) {
@@ -96,8 +103,14 @@ void custom_view::playVideo(const QString path)
 
 
         qDebug() << "Reproducing video from " << url;
-        const std::string URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
-        qDebug() << "Reproducing video from " << URL ;
+        std::string URL;
+        if(authMethod == "JWT"){
+            URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
+            qDebug() << "Reproducing video from " << URL ;
+        } else if (authMethod == "Internal"){
+            URL = "rtspp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
+            qDebug() << "Reproducing video from " << URL ;
+        }
         auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
 
         auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
@@ -109,7 +122,9 @@ void custom_view::playVideo(const QString path)
             context->readAndDecode(callback);
 
         });
+        qDebug() << "CIAOOOO" ;
         fut.wait();
+        qDebug() << "BELLAAA" ;
     });
 }
 
@@ -141,7 +156,12 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
 }
 
+custom_view::~custom_view()
+{
+    scheduler.reset();
+    threadpool.reset();
 
+}
 
 
 
