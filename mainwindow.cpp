@@ -14,6 +14,7 @@
 
 using namespace std::chrono_literals;
 
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
 
@@ -21,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
     ui->lineEdit_3->setEchoMode(QLineEdit::Password);
     ui->treeWidget_2->setColumnCount(1);
+
     ui->comboBox->setCurrentIndex(-1);
 
     connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
@@ -54,9 +56,9 @@ void MainWindow::setAuthMethod()
     qDebug() << authMethod;
 }
 
+
 void MainWindow::connetToRecorder()
 {
-
     if(authMethod == "Json Web Token"){
         connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView1, &custom_view::getUrlAndToken);
         connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView2, &custom_view::getUrlAndToken);
@@ -136,7 +138,29 @@ void MainWindow::connetToRecorder()
 
     getTopology();
 
-}
+
+    QByteArray ba(response.str().data(), response.str().size());
+    QJsonDocument json = QJsonDocument::fromJson(ba);
+    QJsonObject jsonObj = json.object();
+    token = jsonObj["access_token"].toString();
+    expireIn = jsonObj["expires_in"].toString();
+    refExpireIn = jsonObj["refresh_expires_in"].toString();
+    refToken = jsonObj["refresh_token"].toString();
+    sesssionStat = jsonObj["session_state"].toString();
+
+    ui->tabWidget->setEnabled(true);
+    ui->tab_1->setEnabled(false);
+    ui->tabWidget_2->removeTab(0);
+    ui->tab_3->setEnabled(true);
+    ui->tab_4->setEnabled(true);
+    ui->tab_5->setEnabled(true);
+    ui->tab_6->setEnabled(true);
+    ui->tab_7->setEnabled(true);
+
+    emit sendUrlAndToken(ui->lineEdit->text().toStdString(), token.toStdString());
+
+    getTopology();
+
 
 void MainWindow::refreshToken()
 {
@@ -194,8 +218,6 @@ void MainWindow::getTopology()
     }
 
     treeItem->setExpanded(true);
-
-
 }
 
 
@@ -232,5 +254,4 @@ void MainWindow::jitterPlot(int64_t pts)
 
     pts0 = pts;
     startTime=stopTime;
-
 }

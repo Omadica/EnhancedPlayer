@@ -27,6 +27,7 @@ protected:
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
 
+
 protected slots:
     void playVideo(const QString url);
     void drawFrame(QImage img);
@@ -34,6 +35,7 @@ protected slots:
 public slots:
     void getUrlAndToken(std::string url, std::string token);
     void getAuthMethod(std::string auth, std::string urlR, std::string userR, std::string passwd);
+
 
 
 signals:

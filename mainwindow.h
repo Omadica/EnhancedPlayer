@@ -63,6 +63,17 @@ private:
     long pts0 {0};
 
 
+    void getTopology(); // used also for refreshing
 
+private:
+    QChartView *chartView;
+    QLineSeries *series;
+    QChart *chart;
+
+    QString token;
+    QString expireIn;
+    QString refExpireIn;
+    QString refToken;
+    QString sesssionStat;
 };
 #endif // MAINWINDOW_H
