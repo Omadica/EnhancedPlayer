@@ -2,7 +2,6 @@
 #include <QWidget>
 #include <QModelIndex>
 #include <QMenu>
-#include <QtConcurrent/QtConcurrent>
 #include <QMimeData>
 
 
@@ -65,15 +64,109 @@ void custom_view::dropEvent(QDropEvent *event){
 void custom_view::getUrlAndToken(std::string urlR, std::string tokenR)
 {
 
+    authMethod = "JWT";
     url = urlR;
     token = tokenR;
+}
+
+void custom_view::getAuthMethod(std::string auth, std::string urlR, std::string userR, std::string passwdR)
+{
+    authMethod = auth;
+    url = urlR;
+    user = userR;
+    passwd = passwdR;
 }
 
 
 void custom_view::playVideo(const QString path)
 {
     qDebug() << "Play Video";
+    fut = QtConcurrent::run([=] {
 
+
+        callback = [&](MediaWrapper::AV::VideoFrame* frame) {
+
+            qDebug() << "Callback called";
+
+            QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);;
+
+            for(int y=0; y < frame->height(); y++)
+                memcpy(
+                    lastFramepp.scanLine(y),
+                    frame->raw()->data[0] + y * frame->raw()->linesize[0],
+                    frame->raw()->width*3
+                    );
+
+            emit frameRGB(lastFramepp);
+            emit framePts(frame->pts().timestamp());
+        };
+
+
+        qDebug() << "Reproducing video from " << url;
+        std::string URL;
+        if(authMethod == "JWT"){
+            URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
+            qDebug() << "Reproducing video from " << URL ;
+        } else if (authMethod == "Internal"){
+            URL = "rtspp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
+            qDebug() << "Reproducing video from " << URL ;
+        }
+        auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
+
+        auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
+            qDebug() << "Hello from Lambda";
+
+            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+            context->set_processor(std::move(job));
+            context->initializeProcessorContext();
+            context->readAndDecode(callback);
+
+        });
+        qDebug() << "CIAOOOO" ;
+        fut.wait();
+        qDebug() << "BELLAAA" ;
+    });
+}
+
+
+void custom_view::drawFrame(QImage img)
+{
+    scene->clear();
+    scene->addPixmap(QPixmap::fromImage(img));
+
+}
+
+
+void custom_view::dragEnterEvent(QDragEnterEvent *event) {
+    event->acceptProposedAction();
+    qDebug() << "Drag Enter Event";
+
+}
+
+void custom_view::dragMoveEvent(QDragMoveEvent *event) {
+    // qDebug() << "Drag Move Envent" ;
+    event->acceptProposedAction();
+}
+
+void custom_view::mousePressEvent(QMouseEvent* event)
+{
+    event->accept();
+    qDebug() << event->isAccepted() << " " << lineWidth();
+    setLineWidth(5);
+
+}
+
+custom_view::~custom_view()
+{
+    scheduler.reset();
+    threadpool.reset();
+
+}
+
+
+
+
+=======
     QFuture<void> fut = QtConcurrent::run([=] {
 
 

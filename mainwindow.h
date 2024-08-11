@@ -7,8 +7,9 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QChart>
 #include <QChartView>
-#include <QLineSeries>
+#include <QScatterSeries>
 #include <memory.h>
+#include <chrono>
 #include "LoggerService.h"
 
 QT_BEGIN_NAMESPACE
@@ -26,6 +27,7 @@ public:
 
 signals:
     void sendUrlAndToken(std::string url, std::string token);
+    void sendAuthInternal(std::string authMethod, std::string url, std::string intUser, std::string intPass);
 
 protected slots:
     void jitterPlot(int64_t pts);
@@ -33,6 +35,33 @@ protected slots:
     void connetToRecorder();
     void refreshToken();
     void logOutRevokeToken();
+
+    void getTopology(); // used also for refreshing
+    void setAuthMethod();
+
+private:
+    QChartView *chartView;
+    QScatterSeries *series;
+    QChart *chart;
+
+    QString token;
+    QString expireIn;
+    QString refExpireIn;
+    QString refToken;
+    QString sesssionStat;
+
+    std::chrono::system_clock timer;
+    std::chrono::system_clock timer2;
+    std::chrono::system_clock::time_point startTime;
+    std::chrono::system_clock::time_point stopTime;
+    std::chrono::system_clock::time_point startAbsTime;
+
+    std::string authMethod;
+    std::string intUser;
+    std::string intPass;
+
+    long pts0 {0};
+
 
     void getTopology(); // used also for refreshing
 
