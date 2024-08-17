@@ -46,8 +46,8 @@ signals:
 
 
 private:
-    std::shared_ptr<TaskManager::ThreadPool> threadpool;
-    std::shared_ptr<TaskManager::Scheduler> scheduler;
+//    std::shared_ptr<TaskManager::ThreadPool> threadpool;
+//    std::shared_ptr<TaskManager::Scheduler> scheduler;
 
     std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink;
     std::shared_ptr<spdlog::sinks::basic_file_sink_mt> file_sink;

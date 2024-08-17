@@ -4,6 +4,9 @@
 #include <QMenu>
 #include <QMimeData>
 
+std::shared_ptr<TaskManager::ThreadPool> threadpool;
+std::shared_ptr<TaskManager::Scheduler> scheduler;
+
 
 custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePressed(false)
 {
@@ -21,10 +24,6 @@ custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePre
 
 
     MediaWrapper::AV::init();
-
-    size_t nthreads = std::thread::hardware_concurrency();
-    threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
-    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads*20);
 
     this->acceptDrops();
     scene = new QGraphicsScene(this);
@@ -98,7 +97,7 @@ void custom_view::playVideo(const QString path)
                     );
 
             emit frameRGB(lastFramepp);
-            emit framePts(frame->pts().timestamp());
+            // emit framePts(frame->pts().timestamp());
         };
 
 
@@ -108,7 +107,7 @@ void custom_view::playVideo(const QString path)
             URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
             qDebug() << "Reproducing video from " << URL ;
         } else if (authMethod == "Internal"){
-            URL = "rtspp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
+            URL = "rtsp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
             qDebug() << "Reproducing video from " << URL ;
         }
         auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
@@ -122,9 +121,7 @@ void custom_view::playVideo(const QString path)
             context->readAndDecode(callback);
 
         });
-        qDebug() << "CIAOOOO" ;
         fut.wait();
-        qDebug() << "BELLAAA" ;
     });
 }
 
@@ -161,67 +158,4 @@ custom_view::~custom_view()
     scheduler.reset();
     threadpool.reset();
 
-}
-
-
-
-
-=======
-    QFuture<void> fut = QtConcurrent::run([=] {
-
-
-        callback = [&](MediaWrapper::AV::VideoFrame* frame) {
-
-            qDebug() << "Callback called";
-
-            QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);;
-
-            for(int y=0; y < frame->height(); y++)
-                memcpy(
-                    lastFramepp.scanLine(y),
-                    frame->raw()->data[0] + y * frame->raw()->linesize[0],
-                    frame->raw()->width*3
-                    );
-
-            emit frameRGB(lastFramepp);
-            emit framePts(frame->pts().timestamp());
-        };
-
-
-        qDebug() << "Reproducing video from " << url;
-        const std::string URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
-        qDebug() << "Reproducing video from " << URL ;
-        auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
-
-        auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
-            qDebug() << "Hello from Lambda";
-
-            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
-            context->set_processor(std::move(job));
-            context->initializeProcessorContext();
-            context->readAndDecode(callback);
-
-        });
-        fut.wait();
-    });
-}
-
-
-void custom_view::drawFrame(QImage img)
-{
-    scene->clear();
-    scene->addPixmap(QPixmap::fromImage(img));
-
-}
-
-
-void custom_view::dragEnterEvent(QDragEnterEvent *event) {
-    event->acceptProposedAction();
-    qDebug() << "Drag Enter Event";
-
-}
-
-void custom_view::dragMoveEvent(QDragMoveEvent *event) {
-    // qDebug() << "Drag Move Envent" ;
-    event->acceptProposedAction();
 }

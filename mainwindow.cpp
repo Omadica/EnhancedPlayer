@@ -1,3 +1,4 @@
+#include <memory.h>
 #include <QPixmap>
 #include <QString>
 #include <QIcon>
@@ -7,10 +8,15 @@
 #include "mainwindow.h"
 #include "myqttreewidget.h"
 #include "./ui_mainwindow.h"
+#include "TaskManager.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
+
+extern std::shared_ptr<TaskManager::ThreadPool> threadpool;
+extern std::shared_ptr<TaskManager::Scheduler> scheduler;
+
 
 using namespace std::chrono_literals;
 
@@ -46,26 +52,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     startTime = timer.now();
     startAbsTime = timer2.now();
 
+    size_t nthreads = std::thread::hardware_concurrency();
+    threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
+    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads*20);
+
 }
 
 void MainWindow::setAuthMethod()
 {
     authMethod = ui->comboBox->currentText().toStdString();
-
-
     qDebug() << authMethod;
 }
 
 
 void MainWindow::connetToRecorder()
 {
+    std::ostringstream response;
     if(authMethod == "Json Web Token"){
         connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView1, &custom_view::getUrlAndToken);
         connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView2, &custom_view::getUrlAndToken);
         connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView3, &custom_view::getUrlAndToken);
         connect(this, &MainWindow::sendUrlAndToken, ui->graphicsView4, &custom_view::getUrlAndToken);
 
-        std::ostringstream response;
         try {
             curlpp::Easy authRequest;
 
@@ -98,7 +106,6 @@ void MainWindow::connetToRecorder()
         refToken = jsonObj["refresh_token"].toString();
         sesssionStat = jsonObj["session_state"].toString();
 
-        ui->tabWidget->setEnabled(true);
         ui->tab_1->setEnabled(false);
         ui->tabWidget_2->removeTab(0);
         ui->tab_3->setEnabled(true);
@@ -117,7 +124,6 @@ void MainWindow::connetToRecorder()
 
         intUser = ui->lineEdit_2->text().toStdString();
         intPass = ui->lineEdit_3->text().toStdString();
-        ui->tabWidget->setEnabled(true);
         ui->tab_1->setEnabled(false);
         ui->tabWidget_2->removeTab(0);
         ui->tab_3->setEnabled(true);
@@ -138,29 +144,7 @@ void MainWindow::connetToRecorder()
 
     getTopology();
 
-
-    QByteArray ba(response.str().data(), response.str().size());
-    QJsonDocument json = QJsonDocument::fromJson(ba);
-    QJsonObject jsonObj = json.object();
-    token = jsonObj["access_token"].toString();
-    expireIn = jsonObj["expires_in"].toString();
-    refExpireIn = jsonObj["refresh_expires_in"].toString();
-    refToken = jsonObj["refresh_token"].toString();
-    sesssionStat = jsonObj["session_state"].toString();
-
-    ui->tabWidget->setEnabled(true);
-    ui->tab_1->setEnabled(false);
-    ui->tabWidget_2->removeTab(0);
-    ui->tab_3->setEnabled(true);
-    ui->tab_4->setEnabled(true);
-    ui->tab_5->setEnabled(true);
-    ui->tab_6->setEnabled(true);
-    ui->tab_7->setEnabled(true);
-
-    emit sendUrlAndToken(ui->lineEdit->text().toStdString(), token.toStdString());
-
-    getTopology();
-
+}
 
 void MainWindow::refreshToken()
 {
@@ -174,8 +158,8 @@ void MainWindow::logOutRevokeToken()
 
 void MainWindow::getTopology()
 {
-    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/server-database.png"));
-    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("D:/Source/Repos/EXERCISE/EnhancedPlayer/artifacts/digikam.png"));
+    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("server-database.png"));
+    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("digikam.png"));
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
     treeItem->setIcon(0, icon_DVR);
     treeItem->setText(0, ui->lineEdit->text());
@@ -207,6 +191,7 @@ void MainWindow::getTopology()
     for (const QJsonValue& c : jsonObj["items"].toArray()){
         qDebug() << c["name"].toString();
         cameras.push_back(c["name"].toString().toStdString());
+        qDebug() << c["name"].toString();
     }
 
 
@@ -224,7 +209,6 @@ void MainWindow::getTopology()
 MainWindow::~MainWindow()
 {
     qDebug() << "Disposing UI and threads";
-
     delete ui;
 }
 

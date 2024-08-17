@@ -6,10 +6,15 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-cmake_policy(SET CMP0167 NEW)
+#cmake_policy(SET CMP0167 NEW)
 
 list(APPEND CMAKE_PREFIX_PATH "/home/algebrato/Qt/6.6.0/gcc_64/lib/cmake")
-set(PKG_CONFIG_EXECUTABLE "C:/Strawberry/perl/bin/pkg-config.bat")
+if(WIN32)
+    set(PKG_CONFIG_EXECUTABLE "C:/Strawberry/perl/bin/pkg-config.bat")
+elseif(UNIX)
+    set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config")
+endif(WIN32)
+
 set(ENV{PKG_CONFIG_PATH} ${CMAKE_CURRENT_LIST_DIR}/artifacts/FFmpeg_v5.1.2_20230303/lib/pkgconfig)
 list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
 
@@ -22,6 +27,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Mul
 find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED)
+find_package(CURL REQUIRED)
 
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavcodec
@@ -41,7 +47,7 @@ file (GLOB PROJECT_SOURCES PROJECT_HEADERS PROJECT_FORMS PROJECT_TR
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/*.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/*.ts
-   )
+)
 
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -73,36 +79,32 @@ endif()
 
 target_include_directories(EnhancedPlayer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug"
-    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/build/Debug"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/build/Debug/include"
     "${OpenCV_INCLUDE_DIRS}"
     "${LIBAV_INCLUDE_DIRS}"
     "${Boost_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/sigslot/include/sigslot"
-    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/include"
-    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/include"
+    "artifact/MediaServices/dependencies/curlpp/include"
 )
 
 target_link_directories(EnhancedPlayer PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/Debug/lib"
-    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/build/Debug"
-    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/build/lib/Debug"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/build/Debug/lib"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/build"
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
     Qt${QT_VERSION_MAJOR}::Charts
-    PkgConfig::LIBAV
     task_manager
     task_processor
-    media_wrap
     media_reader
     media_decoder
-    libcurl-d_imp
+    media_wrap
+    PkgConfig::LIBAV
+    curl
     curlpp
-
-
 )
 
 install(TARGETS EnhancedPlayer
