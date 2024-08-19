@@ -15,9 +15,7 @@ elseif(UNIX)
     set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config")
 endif(WIN32)
 
-set(ENV{PKG_CONFIG_PATH} ${CMAKE_CURRENT_LIST_DIR}/artifacts/FFmpeg_v5.1.2_20230303/lib/pkgconfig)
 list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
-
 
 add_subdirectory(artifacts/sigslot)
 

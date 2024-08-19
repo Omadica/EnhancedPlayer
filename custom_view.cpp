@@ -87,7 +87,7 @@ void custom_view::playVideo(const QString path)
 
             qDebug() << "Callback called";
 
-            QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);;
+            QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);
 
             for(int y=0; y < frame->height(); y++)
                 memcpy(
@@ -110,9 +110,10 @@ void custom_view::playVideo(const QString path)
             URL = "rtsp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
             qDebug() << "Reproducing video from " << URL ;
         }
-        auto context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
 
-        auto fut = scheduler->scheduleLambda("LiveJob"+URL, [&]() {
+        context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
+
+        auto fut = scheduler->scheduleLambda("LiveJob " + URL, [&]() {
             qDebug() << "Hello from Lambda";
 
             auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
@@ -121,16 +122,33 @@ void custom_view::playVideo(const QString path)
             context->readAndDecode(callback);
 
         });
+        qDebug() << "############################################";
         fut.wait();
+        qDebug() << "Ci sono BIS?";
     });
+    qDebug() << "Ci sono TRIS?";
+
+    if(fut.isRunning())
+        qDebug() << "Task running";
+
 }
 
 
 void custom_view::drawFrame(QImage img)
 {
+
     scene->clear();
     scene->addPixmap(QPixmap::fromImage(img));
 
+}
+
+void custom_view::stopLive()
+{
+    if(context){
+        context->stopProcess();
+        QImage emptyFrame = QImage(4,4, QImage::Format_RGB888);
+        emit frameRGB(emptyFrame);
+    }
 }
 
 
@@ -155,6 +173,7 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
 custom_view::~custom_view()
 {
+    stopLive();
     scheduler.reset();
     threadpool.reset();
 

@@ -38,6 +38,7 @@ protected slots:
 
     void getTopology(); // used also for refreshing
     void setAuthMethod();
+    void showWorkingThreads();
 
 private:
     QChartView *chartView;

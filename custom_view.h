@@ -35,6 +35,7 @@ protected slots:
 public slots:
     void getUrlAndToken(std::string url, std::string token);
     void getAuthMethod(std::string auth, std::string urlR, std::string userR, std::string passwd);
+    void stopLive();
 
 
 
@@ -53,6 +54,7 @@ private:
     std::shared_ptr<spdlog::sinks::basic_file_sink_mt> file_sink;
     std::shared_ptr<spdlog::logger> m_logger;
 
+    std::unique_ptr<TaskProcessor::ProcessorContext> context;
     std::function<void(MediaWrapper::AV::VideoFrame*)> callback;
     QGraphicsScene *scene;
     QList<QRect> rects;

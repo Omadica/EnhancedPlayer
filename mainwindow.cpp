@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
     connect(ui->pushButton, &QPushButton::released, this, &MainWindow::connetToRecorder);
     connect(ui->comboBox, &QComboBox::currentIndexChanged, this, &MainWindow::setAuthMethod);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
 
     chart = new QChart();
     series = new QScatterSeries();
@@ -53,8 +54,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     startAbsTime = timer2.now();
 
     size_t nthreads = std::thread::hardware_concurrency();
-    threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
-    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads*20);
+    threadpool = std::make_shared<TaskManager::ThreadPool>(4);
+    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, 4);
 
 }
 
@@ -156,6 +157,11 @@ void MainWindow::logOutRevokeToken()
 
 }
 
+void MainWindow::showWorkingThreads()
+{
+    ui->wthreads->setText("Working Threads: ");
+}
+
 void MainWindow::getTopology()
 {
     QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("server-database.png"));
@@ -209,6 +215,10 @@ void MainWindow::getTopology()
 MainWindow::~MainWindow()
 {
     qDebug() << "Disposing UI and threads";
+    ui->graphicsView1->stopLive();
+    ui->graphicsView2->stopLive();
+    ui->graphicsView3->stopLive();
+    ui->graphicsView4->stopLive();
     delete ui;
 }
 
@@ -220,7 +230,7 @@ void MainWindow::jitterPlot(int64_t pts)
     stopTime = timer.now();
     auto t2 = timer2.now();
 
-    auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(stopTime - startTime);
+    // auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(stopTime - startTime);
     auto t = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(t2-startAbsTime).count());
     pts = pts/100;
     auto jit = pts-pts0;
