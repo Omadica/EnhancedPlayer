@@ -8,7 +8,6 @@
 #include "mainwindow.h"
 #include "myqttreewidget.h"
 #include "./ui_mainwindow.h"
-#include "TaskManager.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -40,10 +39,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->fastForBtn->setIcon(iconFF);
     ui->backForBtn->setIcon(iconBF);
 
-    connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
     connect(ui->pushButton, &QPushButton::released, this, &MainWindow::connetToRecorder);
     connect(ui->comboBox, &QComboBox::currentIndexChanged, this, &MainWindow::setAuthMethod);
-    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
+
+    // Start the application with no hooks.
+    // connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
 
     chart = new QChart();
     series = new QScatterSeries();
@@ -68,12 +68,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 }
 
+
 void MainWindow::setAuthMethod()
 {
     authMethod = ui->comboBox->currentText().toStdString();
     qDebug() << authMethod;
 }
-
 
 void MainWindow::connetToRecorder()
 {
@@ -224,11 +224,6 @@ void MainWindow::getTopology()
 MainWindow::~MainWindow()
 {
     qDebug() << "Disposing UI and threads";
-    // ui->graphicsView1->stopLive();
-    // ui->graphicsView2->stopLive();
-    // ui->graphicsView3->stopLive();
-    // ui->graphicsView4->stopLive();
-
     delete ui;
 }
 

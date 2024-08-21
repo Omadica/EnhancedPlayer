@@ -3,6 +3,8 @@
 #include <QModelIndex>
 #include <QMenu>
 #include <QMimeData>
+#include <QFont>
+#include "mainwindow.h"
 
 std::shared_ptr<TaskManager::ThreadPool> threadpool;
 std::shared_ptr<TaskManager::Scheduler> scheduler;
@@ -21,7 +23,6 @@ custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePre
     m_logger = std::make_shared<spdlog::logger>("NativeLog", begin(sinks), end(sinks));
     m_logger->set_level(log_level);
     m_logger->enable_backtrace(32);
-
 
     MediaWrapper::AV::init();
 
@@ -157,9 +158,21 @@ void custom_view::dragMoveEvent(QDragMoveEvent *event) {
 
 void custom_view::mousePressEvent(QMouseEvent* event)
 {
-    event->accept();
-    qDebug() << event->isAccepted() << " " << lineWidth();
-    setLineWidth(5);
+    if(!isFocused)
+    {
+        event->accept();
+        setLineWidth(2);
+        setFrameShadow(Shadow::Plain);
+        emit focusIn(this);
+        isFocused = true;
+        // auto p = this->parent()->parent(); ??
+
+    } else {
+        setLineWidth(1);
+        setFrameShadow(Shadow::Sunken);
+
+        isFocused = false;
+    }
 
 }
 

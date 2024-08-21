@@ -10,6 +10,7 @@
 #include <QScatterSeries>
 #include <memory.h>
 #include <chrono>
+#include "custom_view.h"
 #include "LoggerService.h"
 
 QT_BEGIN_NAMESPACE
@@ -39,6 +40,9 @@ protected slots:
     void getTopology(); // used also for refreshing
     void setAuthMethod();
     void showWorkingThreads();
+
+public slots:
+    void stopBtnConnection();
 
 private:
     QChartView *chartView;

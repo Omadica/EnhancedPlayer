@@ -1,5 +1,6 @@
 #ifndef CUSTOM_VIEW_H
 #define CUSTOM_VIEW_H
+
 #include <QtConcurrent/QtConcurrent>
 #include <QWidget>
 #include <QGraphicsView>
@@ -43,13 +44,12 @@ signals:
     void callVideo(const QString);
     void frameRGB(QImage img);
     void framePts(int64_t pts);
+    void focusIn(custom_view *cv);
+    void focusOut();
 
 
 
 private:
-//    std::shared_ptr<TaskManager::ThreadPool> threadpool;
-//    std::shared_ptr<TaskManager::Scheduler> scheduler;
-
     std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink;
     std::shared_ptr<spdlog::sinks::basic_file_sink_mt> file_sink;
     std::shared_ptr<spdlog::logger> m_logger;
@@ -69,6 +69,8 @@ private:
     std::string passwd;
     QFuture<void> fut;
     QPromise<void> promise;
+
+    bool isFocused {false};
 
 
 };
