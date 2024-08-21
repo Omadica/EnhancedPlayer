@@ -114,7 +114,6 @@ void custom_view::playVideo(const QString path)
         context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
 
         auto fut = scheduler->scheduleLambda("LiveJob " + URL, [&]() {
-            qDebug() << "Hello from Lambda";
 
             auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
             context->set_processor(std::move(job));
@@ -122,15 +121,8 @@ void custom_view::playVideo(const QString path)
             context->readAndDecode(callback);
 
         });
-        qDebug() << "############################################";
         fut.wait();
-        qDebug() << "Ci sono BIS?";
     });
-    qDebug() << "Ci sono TRIS?";
-
-    if(fut.isRunning())
-        qDebug() << "Task running";
-
 }
 
 
@@ -176,5 +168,4 @@ custom_view::~custom_view()
     stopLive();
     scheduler.reset();
     threadpool.reset();
-
 }

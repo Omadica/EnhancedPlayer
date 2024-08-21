@@ -30,6 +30,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->treeWidget_2->setColumnCount(1);
 
     ui->comboBox->setCurrentIndex(-1);
+    QIcon iconFF = QIcon::fromTheme("oxygen", QIcon("media-seek-forward.png"));
+    QIcon iconBF = QIcon::fromTheme("oxygen", QIcon("media-seek-backward.png"));
+    QIcon iconStop = QIcon::fromTheme("oxygen", QIcon("media-playback-stop.png"));
+    QIcon iconPlay = QIcon::fromTheme("oxygen", QIcon("media-playback-start.png"));
+
+    ui->stopBtn->setIcon(iconStop);
+    ui->playBtn->setIcon(iconPlay);
+    ui->fastForBtn->setIcon(iconFF);
+    ui->backForBtn->setIcon(iconBF);
 
     connect(ui->graphicsView1, &custom_view::framePts, this, &MainWindow::jitterPlot);
     connect(ui->pushButton, &QPushButton::released, this, &MainWindow::connetToRecorder);
@@ -215,10 +224,11 @@ void MainWindow::getTopology()
 MainWindow::~MainWindow()
 {
     qDebug() << "Disposing UI and threads";
-    ui->graphicsView1->stopLive();
-    ui->graphicsView2->stopLive();
-    ui->graphicsView3->stopLive();
-    ui->graphicsView4->stopLive();
+    // ui->graphicsView1->stopLive();
+    // ui->graphicsView2->stopLive();
+    // ui->graphicsView3->stopLive();
+    // ui->graphicsView4->stopLive();
+
     delete ui;
 }
 
