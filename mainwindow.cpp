@@ -62,9 +62,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     startTime = timer.now();
     startAbsTime = timer2.now();
 
-    size_t nthreads = std::thread::hardware_concurrency();
-    threadpool = std::make_shared<TaskManager::ThreadPool>(4);
-    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, 4);
+    size_t nthreads = std::thread::hardware_concurrency()*20;
+    threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
+    scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads);
 
 }
 
