@@ -4,6 +4,8 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QFont>
+#include <chrono>
+#include <iostream>
 #include "mainwindow.h"
 
 std::shared_ptr<TaskManager::ThreadPool> threadpool;
@@ -116,11 +118,10 @@ void custom_view::playVideo(const QString path)
 
         auto fut = scheduler->scheduleLambda("LiveJob " + URL, [&]() {
 
-            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
-            context->set_processor(std::move(job));
-            context->initializeProcessorContext();
-            context->readAndDecode(callback);
-
+           auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+           context->set_processor(std::move(job));
+           context->initializeProcessorContext();
+           context->readAndDecode(callback);
         });
         fut.wait();
     });

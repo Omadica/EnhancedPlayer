@@ -41,8 +41,8 @@ protected slots:
     void setAuthMethod();
     void showWorkingThreads();
 
-public slots:
-    void stopBtnConnection();
+//public slots:
+//    void stopBtnConnection();
 
 private:
     QChartView *chartView;
