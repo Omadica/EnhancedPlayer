@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1279</width>
-    <height>798</height>
+    <height>804</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,7 +61,7 @@
            <enum>QTabWidget::TabShape::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="documentMode">
            <bool>true</bool>
@@ -124,7 +124,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit">
                  <property name="text">
-                  <string>192.168.1.102</string>
+                  <string>10.31.7.78</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -137,7 +137,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_2">
                  <property name="text">
-                  <string>tivania</string>
+                  <string>admin</string>
                  </property>
                  <property name="echoMode">
                   <enum>QLineEdit::EchoMode::Normal</enum>
@@ -153,7 +153,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_3">
                  <property name="text">
-                  <string>admin123</string>
+                  <string>admin</string>
                  </property>
                  <property name="echoMode">
                   <enum>QLineEdit::EchoMode::Password</enum>

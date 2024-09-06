@@ -8,6 +8,8 @@ set(CMAKE_AUTORCC ON)
 
 #cmake_policy(SET CMP0167 NEW)
 
+set(ENV{PKG_CONFIG_PATH} "D:/Source/Repos/EXERCISE/MediaServices/cmake/pkgconfig")
+
 list(APPEND CMAKE_PREFIX_PATH "/home/algebrato/Qt/6.6.0/gcc_64/lib/cmake")
 if(WIN32)
     set(PKG_CONFIG_EXECUTABLE "C:/Strawberry/perl/bin/pkg-config.bat")
@@ -25,7 +27,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Mul
 find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED)
-find_package(CURL REQUIRED)
+#find_package(CURL REQUIRED)
 
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavcodec
@@ -83,12 +85,14 @@ target_include_directories(EnhancedPlayer PRIVATE
     "${LIBAV_INCLUDE_DIRS}"
     "${Boost_INCLUDE_DIRS}"
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/sigslot/include/sigslot"
-    "artifact/MediaServices/dependencies/curlpp/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/dependencies/curlpp/include"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/include"
 )
 
 target_link_directories(EnhancedPlayer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/artifacts/MediaServices/build/Debug/lib"
-    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/build"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curlpp/build/Debug"
+    "D:/Source/Repos/EXERCISE/MediaServices/dependencies/curl/build/lib/Debug"
 )
 
 target_link_libraries(EnhancedPlayer PRIVATE
@@ -101,7 +105,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    curl
+    libcurl-d_imp
     curlpp
 )
 

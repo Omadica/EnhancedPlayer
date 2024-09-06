@@ -70,8 +70,11 @@ private:
     QFuture<void> fut;
     QPromise<void> promise;
 
-    bool isFocused {false};
+    bool bStreamingActive = {false};
 
+    bool isFocused {false};
+    std::mutex stopMutex;
+    std::condition_variable m_cv;
 
 };
 

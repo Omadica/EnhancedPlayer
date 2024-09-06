@@ -52,7 +52,9 @@ void custom_view::wheelEvent(QWheelEvent *event)
     }
 }
 
-void custom_view::dropEvent(QDropEvent *event){
+void custom_view::dropEvent(QDropEvent *event)
+{
+    auto lock = std::unique_lock<std::mutex>(stopMutex);
     const QMimeData* mimeData =  event->mimeData();
     if(mimeData->hasText())
         qDebug() << "Mime has text: " << mimeData->text() ;
@@ -60,7 +62,16 @@ void custom_view::dropEvent(QDropEvent *event){
         qDebug() << "Mime has NOT text" ;
 
     qDebug() << "Drop camera " << mimeData->text() << " on cell " << this->objectName();
-    emit callVideo(mimeData->text());
+
+    if(!bStreamingActive){
+        emit callVideo(mimeData->text());
+        bStreamingActive = true;
+    } else {
+        stopLive();
+        m_cv.wait(lock, [this](){return !bStreamingActive;} );
+        emit callVideo(mimeData->text());
+        bStreamingActive = true;
+    }
 }
 
 void custom_view::getUrlAndToken(std::string urlR, std::string tokenR)
@@ -119,12 +130,19 @@ void custom_view::playVideo(const QString path)
         auto fut = scheduler->scheduleLambda("LiveJob " + URL, [&]() {
 
            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+           bStreamingActive = true;
            context->set_processor(std::move(job));
            context->initializeProcessorContext();
            context->readAndDecode(callback);
+
         });
         fut.wait();
+
+        bStreamingActive = false;
+        m_cv.notify_all();
+
     });
+    qDebug() << "ciao";
 }
 
 
@@ -140,8 +158,12 @@ void custom_view::stopLive()
 {
     if(context){
         context->stopProcess();
-        QImage emptyFrame = QImage(4,4, QImage::Format_RGB888);
-        emit frameRGB(emptyFrame);
+        // QImage emptyFrame = QImage(4,4, QImage::Format_RGB888);
+        // emit frameRGB(emptyFrame);
+        scene->clear();
+        scene->addPixmap(QPixmap::fromImage(QImage(4,4,QImage::Format_RGB888)));
+        scene->setSceneRect(QRectF(0,0,0,0));
+        scene->update();
     }
 }
 
@@ -166,7 +188,7 @@ void custom_view::mousePressEvent(QMouseEvent* event)
         setFrameShadow(Shadow::Plain);
         emit focusIn(this);
         isFocused = true;
-        // auto p = this->parent()->parent(); ??
+
 
     } else {
         setLineWidth(1);
@@ -174,6 +196,10 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
         isFocused = false;
     }
+
+    qDebug() << this->frameSize() ;
+    qDebug() << scene->sceneRect();
+    qDebug() << bStreamingActive;
 
 }
 

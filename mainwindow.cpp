@@ -43,7 +43,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->comboBox, &QComboBox::currentIndexChanged, this, &MainWindow::setAuthMethod);
 
     // Start the application with no hooks.
-    // connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView2, &custom_view::stopLive);
 
     chart = new QChart();
     series = new QScatterSeries();
