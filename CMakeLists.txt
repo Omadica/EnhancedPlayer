@@ -27,7 +27,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Mul
 find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED)
-#find_package(CURL REQUIRED)
+find_package(CURL REQUIRED)
 
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavcodec
@@ -105,7 +105,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    libcurl-d_imp
+    curl
     curlpp
 )
 
