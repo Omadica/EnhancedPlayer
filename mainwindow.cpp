@@ -45,6 +45,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Start the application with no hooks.
     connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
     connect(ui->stopBtn, &QPushButton::released, ui->graphicsView2, &custom_view::stopLive);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView3, &custom_view::stopLive);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView4, &custom_view::stopLive);
 
     chart = new QChart();
     series = new QScatterSeries();
@@ -224,6 +226,11 @@ void MainWindow::getTopology()
 
 MainWindow::~MainWindow()
 {
+    ui->graphicsView1->stopLive();
+    ui->graphicsView2->stopLive();
+    ui->graphicsView3->stopLive();
+    ui->graphicsView4->stopLive();
+
     qDebug() << "Disposing UI and threads";
     delete ui;
 }
