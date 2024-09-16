@@ -212,12 +212,15 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
 custom_view::~custom_view()
 {
-    qDebug() << "Waiting stop context" ;
-    auto lock = std::unique_lock<std::mutex>(stopMutex);
+    if(context){
+        qDebug() << "Waiting stop context" ;
+        auto lock = std::unique_lock<std::mutex>(stopMutex);
 
-    qDebug() << "Stopping context ..." ;
-    context->stopProcess();
-    m_cv.wait(lock, [this](){return !bStreamingActive;} );
+        qDebug() << "Stopping context ..." ;
+
+        context->stopProcess();
+        m_cv.wait(lock, [this](){return !bStreamingActive;} );
+    }
 
     qDebug() << "Context stopped, move to close view...";
 
