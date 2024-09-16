@@ -135,10 +135,14 @@ void custom_view::playVideo(const QString path)
            context->initializeProcessorContext();
            context->readAndDecode(callback);
 
+           job.reset();
+
         });
+
         fut.wait();
 
         bStreamingActive = false;
+        context.reset();
         m_cv.notify_all();
 
     });
@@ -149,24 +153,23 @@ void custom_view::drawFrame(QImage img)
 {
 
     scene->clear();
+    scene->setSceneRect(QRectF(0,0,img.width(), img.height()));
     scene->addPixmap(QPixmap::fromImage(img));
 
 }
 
 void custom_view::stopLive()
 {
+
     if(context){
         context->stopProcess();
-        // QImage emptyFrame = QImage(4,4, QImage::Format_RGB888);
-        // emit frameRGB(emptyFrame);
-        scene->clear();
-        scene->addPixmap(QPixmap::fromImage(QImage(4,4,QImage::Format_RGB888)));
-        scene->setSceneRect(QRectF(0,0,0,0));
-        scene->update();
-
-        // LOL -- Fix me as soon as possible
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    scene->clear();
+    scene->addPixmap(QPixmap::fromImage(QImage(4,4,QImage::Format_RGB888)));
+    scene->setSceneRect(QRectF(0,0,0,0));
+    scene->update();
+
+
 
 }
 
@@ -208,7 +211,15 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
 custom_view::~custom_view()
 {
-    stopLive();
-    scheduler.reset();
-    threadpool.reset();
+    auto lock = std::unique_lock<std::mutex>(stopMutex);
+    if(context)
+        stopLive();
+
+    m_cv.wait(lock, [this](){return !bStreamingActive;} );
+
+    if(scheduler)
+        scheduler.reset();
+
+    if(threadpool)
+        threadpool.reset();
 }

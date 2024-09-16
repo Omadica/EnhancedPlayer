@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     startTime = timer.now();
     startAbsTime = timer2.now();
 
-    size_t nthreads = std::thread::hardware_concurrency()*20;
+    size_t nthreads = std::thread::hardware_concurrency();
     threadpool = std::make_shared<TaskManager::ThreadPool>(nthreads);
     scheduler = std::make_shared<TaskManager::Scheduler>(threadpool, nthreads);
 
@@ -226,11 +226,6 @@ void MainWindow::getTopology()
 
 MainWindow::~MainWindow()
 {
-    ui->graphicsView1->stopLive();
-    ui->graphicsView2->stopLive();
-    ui->graphicsView3->stopLive();
-    ui->graphicsView4->stopLive();
-
     qDebug() << "Disposing UI and threads";
     delete ui;
 }
