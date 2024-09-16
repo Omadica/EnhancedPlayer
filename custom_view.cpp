@@ -164,12 +164,12 @@ void custom_view::stopLive()
     if(context){
         context->stopProcess();
     }
-    scene->clear();
-    scene->addPixmap(QPixmap::fromImage(QImage(4,4,QImage::Format_RGB888)));
-    scene->setSceneRect(QRectF(0,0,0,0));
-    scene->update();
 
 
+    // scene->clear();
+    // scene->addPixmap(QPixmap::fromImage(QImage(4,4,QImage::Format_RGB888)));
+    // scene->setSceneRect(QRectF(0,0,0,0));
+    // scene->update();
 
 }
 
@@ -205,21 +205,21 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
     qDebug() << this->frameSize() ;
     qDebug() << scene->sceneRect();
+    qDebug() << this->devicePixelRatioFScale();
     qDebug() << bStreamingActive;
 
 }
 
 custom_view::~custom_view()
 {
+    qDebug() << "Waiting stop context" ;
     auto lock = std::unique_lock<std::mutex>(stopMutex);
-    if(context)
-        stopLive();
 
+    qDebug() << "Stopping context ..." ;
+    context->stopProcess();
     m_cv.wait(lock, [this](){return !bStreamingActive;} );
 
-    if(scheduler)
-        scheduler.reset();
+    qDebug() << "Context stopped, move to close view...";
 
-    if(threadpool)
-        threadpool.reset();
+
 }

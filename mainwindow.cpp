@@ -226,6 +226,7 @@ void MainWindow::getTopology()
 
 MainWindow::~MainWindow()
 {
+
     qDebug() << "Disposing UI and threads";
     delete ui;
 }
