@@ -15,6 +15,7 @@ if(WIN32)
     set(PKG_CONFIG_EXECUTABLE "C:/Strawberry/perl/bin/pkg-config.bat")
 elseif(UNIX)
     set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g")
 endif(WIN32)
 
 list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
@@ -116,8 +117,8 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    libcurl-d_imp
-    libcurlpp
+    curl 
+    curlpp
 )
 
 install(TARGETS EnhancedPlayer

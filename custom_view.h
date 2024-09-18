@@ -12,6 +12,7 @@
 #include <QList>
 #include <QRect>
 #include <QString>
+#include <future>
 
 class custom_view : public QGraphicsView
 {

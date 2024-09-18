@@ -144,8 +144,10 @@ void custom_view::playVideo(const QString path)
         bStreamingActive = false;
         context.reset();
         m_cv.notify_all();
-
     });
+
+
+
 }
 
 
@@ -166,10 +168,23 @@ void custom_view::stopLive()
     }
 
 
-    // scene->clear();
-    // scene->addPixmap(QPixmap::fromImage(QImage(4,4,QImage::Format_RGB888)));
-    // scene->setSceneRect(QRectF(0,0,0,0));
-    // scene->update();
+    scene->clear();
+
+
+    QImage image(QSize(4,3),QImage::Format_RGB32);
+    QPainter painter(&image);
+    painter.setBrush(QBrush(Qt::white));
+    painter.fillRect(QRectF(0,0,4,4),Qt::white);
+    painter.fillRect(QRectF(10,100,200,100),Qt::white);
+
+    scene->addPixmap(QPixmap::fromImage(image));
+
+    scene->setSceneRect(QRectF(0,0,0,0));
+    scene->update();
+
+    fut.cancel();
+
+    m_cv.notify_all();
 
 }
 
@@ -216,13 +231,17 @@ custom_view::~custom_view()
         qDebug() << "Waiting stop context" ;
         auto lock = std::unique_lock<std::mutex>(stopMutex);
 
-        qDebug() << "Stopping context ..." ;
-
-        context->stopProcess();
-        m_cv.wait(lock, [this](){return !bStreamingActive;} );
-    }
+    qDebug() << "Stopping context ..." ;
+    if(context)
+        stopLive();
+    m_cv.wait(lock, [this](){return !bStreamingActive;} );
 
     qDebug() << "Context stopped, move to close view...";
+
+    if(threadpool)
+        threadpool.reset();
+    if(scheduler)
+        scheduler.reset();
 
 
 }
