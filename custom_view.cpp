@@ -227,9 +227,8 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
 custom_view::~custom_view()
 {
-    if(context){
-        qDebug() << "Waiting stop context" ;
-        auto lock = std::unique_lock<std::mutex>(stopMutex);
+    qDebug() << "Waiting stop context" ;
+    auto lock = std::unique_lock<std::mutex>(stopMutex);
 
     qDebug() << "Stopping context ..." ;
     if(context)
