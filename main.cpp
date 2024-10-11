@@ -10,6 +10,8 @@
 int main(int argc, char *argv[])
 {
 
+    qDebug() << "MainThread ThreadID: " << std::hash<std::thread::id>{}(std::this_thread::get_id());
+
     const spdlog::level::level_enum log_level = spdlog::level::debug;
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("Native_log.txt", true);

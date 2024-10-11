@@ -33,6 +33,7 @@ protected:
 protected slots:
     void playVideo(const QString url);
     void drawFrame(QImage img);
+    void notifyAll();
 
 public slots:
     void getUrlAndToken(std::string url, std::string token);
@@ -47,6 +48,7 @@ signals:
     void framePts(int64_t pts);
     void focusIn(custom_view *cv);
     void focusOut();
+    void stopped();
 
 
 

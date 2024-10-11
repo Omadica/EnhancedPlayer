@@ -179,8 +179,12 @@ void MainWindow::getTopology()
     QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("server-database.png"));
     QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("digikam.png"));
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
+    QTreeWidgetItem *treeItem2 = new QTreeWidgetItem(ui->treeWidget);
     treeItem->setIcon(0, icon_DVR);
     treeItem->setText(0, ui->lineEdit->text());
+
+    treeItem2->setIcon(0, icon_DVR);
+    treeItem2->setText(0, ui->lineEdit->text());
 
     std::vector<std::string> cameras = {};
 
@@ -188,8 +192,26 @@ void MainWindow::getTopology()
     curlpp::Easy recorderReq;
 
     try {
+        if(authMethod == "Json Web Token")
+            recorderReq.setOpt<curlpp::options::Url>(
+                QString(QString("http://")+
+                        ui->lineEdit->text()+
+                        QString(":9997/v3/paths/list?jwt=")+token
+                ).toStdString()
+            );
+        else if (authMethod == "Internal")
+            recorderReq.setOpt<curlpp::options::Url>(
+                QString(QString("http://")+
+                        QString(intUser.c_str())+
+                        QString(":")+
+                        QString(intPass.c_str())+
+                        QString("@")+
+                        ui->lineEdit->text()+
+                        QString(":9997/v3/paths/list?jwt=")+token
+                ).toStdString()
+            );
 
-        recorderReq.setOpt<curlpp::options::Url>(QString(("http://")+ui->lineEdit->text()+QString(":9997/v3/paths/list?jwt=")+token).toStdString());
+
         recorderReq.setOpt<curlpp::options::WriteStream>(&recorderResp);
 
         recorderReq.perform();
@@ -215,12 +237,17 @@ void MainWindow::getTopology()
 
     for(auto &it : cameras){
         QTreeWidgetItem *cameraItem = new QTreeWidgetItem(treeItem);
+        QTreeWidgetItem *cameraItem2 = new QTreeWidgetItem(treeItem2);
         cameraItem->setIcon(0, icon_cam);
         cameraItem->setText(0, it.c_str());
+        cameraItem2->setIcon(0, icon_cam);
+        cameraItem2->setText(0, it.c_str());
         treeItem->addChild(cameraItem);
+        treeItem2->addChild(cameraItem2);
     }
 
     treeItem->setExpanded(true);
+    treeItem2->setExpanded(true);
 }
 
 

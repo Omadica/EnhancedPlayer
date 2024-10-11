@@ -34,8 +34,15 @@ custom_view::custom_view(QWidget *parent) : QGraphicsView(parent), m_bIsMousePre
 
     connect(this, &custom_view::callVideo, this, &custom_view::playVideo);
     connect(this, &custom_view::frameRGB, this, &custom_view::drawFrame);
+    connect(this, &custom_view::stopped, this, &custom_view::notifyAll);
 
 }
+
+void custom_view::notifyAll()
+{
+    m_cv.notify_all();
+}
+
 
 void custom_view::wheelEvent(QWheelEvent *event)
 {
@@ -90,65 +97,82 @@ void custom_view::getAuthMethod(std::string auth, std::string urlR, std::string 
     passwd = passwdR;
 }
 
-
 void custom_view::playVideo(const QString path)
 {
-    qDebug() << "Play Video";
-    fut = QtConcurrent::run([=] {
-
-
-        callback = [&](MediaWrapper::AV::VideoFrame* frame) {
-
-            qDebug() << "Callback called";
-
-            QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);
-
-            for(int y=0; y < frame->height(); y++)
-                memcpy(
-                    lastFramepp.scanLine(y),
-                    frame->raw()->data[0] + y * frame->raw()->linesize[0],
-                    frame->raw()->width*3
-                    );
-
-            emit frameRGB(lastFramepp);
-            // emit framePts(frame->pts().timestamp());
-        };
-
-
-        qDebug() << "Reproducing video from " << url;
-        std::string URL;
-        if(authMethod == "JWT"){
-            URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
-            qDebug() << "Reproducing video from " << URL ;
-        } else if (authMethod == "Internal"){
-            URL = "rtsp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
-            qDebug() << "Reproducing video from " << URL ;
-        }
-
-        context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
-
-        auto fut = scheduler->scheduleLambda("LiveJob " + URL, [&]() {
-
-           auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
-           bStreamingActive = true;
-           context->set_processor(std::move(job));
-           context->initializeProcessorContext();
-           context->readAndDecode(callback);
-
-           job.reset();
+    auto fut = QtConcurrent::run([=](){
+        auto fut = scheduler->scheduleLambda("LiveJob MockUp", [&]() {
+            int idx = 0;
+            std::hash<std::thread::id> hasher;
+            while(true){
+                std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                qDebug() << "Thread: " << hasher(std::this_thread::get_id()) << " Value: " << idx;
+                idx++;
+            }
 
         });
-
-        fut.wait();
-
-        bStreamingActive = false;
-        context.reset();
-        m_cv.notify_all();
     });
 
-
-
 }
+
+
+
+// void custom_view::playVideo(const QString path)
+// {
+//     qDebug() << "Play Video";
+//     fut = QtConcurrent::run([=] {
+
+
+//         callback = [&](MediaWrapper::AV::VideoFrame* frame) {
+
+//             qDebug() << "Callback called";
+
+//             QImage lastFramepp = QImage(frame->width(), frame->height(), QImage::Format_RGB888);
+
+//             for(int y=0; y < frame->height(); y++)
+//                 memcpy(
+//                     lastFramepp.scanLine(y),
+//                     frame->raw()->data[0] + y * frame->raw()->linesize[0],
+//                     frame->raw()->width*3
+//                     );
+
+//             emit frameRGB(lastFramepp);
+//             // emit framePts(frame->pts().timestamp());
+//         };
+
+
+//         qDebug() << "Reproducing video from " << url;
+//         std::string URL;
+//         if(authMethod == "JWT"){
+//             URL = "rtsp://" + url + ":8554/" + path.toStdString() + "?jwt=" + token;
+//             qDebug() << "Reproducing video from " << URL ;
+//         } else if (authMethod == "Internal"){
+//             URL = "rtsp://" + user + ":" + passwd + "@" + url + ":8554/" + path.toStdString();
+//             qDebug() << "Reproducing video from " << URL ;
+//         }
+
+//         context = std::make_unique<TaskProcessor::ProcessorContext>(URL);
+
+//         auto fut = scheduler->scheduleLambda("LiveJob " + URL, [&]() {
+
+//            auto job = std::make_unique<TaskProcessor::LiveStream>(context->GetURL(), scheduler);
+//            bStreamingActive = true;
+//            context->set_processor(std::move(job));
+//            context->initializeProcessorContext();
+//            context->readAndDecode(callback);
+
+//            job.reset();
+
+//         });
+
+//         fut.wait();
+
+//         bStreamingActive = false;
+//         emit stopped();
+//         context.reset();
+//         m_cv.notify_all();
+//     });
+
+// }
 
 
 void custom_view::drawFrame(QImage img)
@@ -162,29 +186,31 @@ void custom_view::drawFrame(QImage img)
 
 void custom_view::stopLive()
 {
-
+    auto futureStop = scheduler->scheduleLambda("StopJob ", [&]() {
     if(context){
+
+        auto lock = std::unique_lock<std::mutex>(stopMutex);
         context->stopProcess();
+        scene->clear();
+
+
+        QImage image(QSize(4,3),QImage::Format_RGB32);
+        QPainter painter(&image);
+        painter.setBrush(QBrush(Qt::white));
+        painter.fillRect(QRectF(0,0,4,4),Qt::white);
+        painter.fillRect(QRectF(10,100,200,100),Qt::white);
+
+        scene->addPixmap(QPixmap::fromImage(image));
+
+        scene->setSceneRect(QRectF(0,0,0,0));
+        scene->update();
+
+        //m_cv.wait(lock, [&](){return bStreamingActive==true;});
+        fut.cancel();
+
+        m_cv.notify_all();
     }
-
-
-    scene->clear();
-
-
-    QImage image(QSize(4,3),QImage::Format_RGB32);
-    QPainter painter(&image);
-    painter.setBrush(QBrush(Qt::white));
-    painter.fillRect(QRectF(0,0,4,4),Qt::white);
-    painter.fillRect(QRectF(10,100,200,100),Qt::white);
-
-    scene->addPixmap(QPixmap::fromImage(image));
-
-    scene->setSceneRect(QRectF(0,0,0,0));
-    scene->update();
-
-    fut.cancel();
-
-    m_cv.notify_all();
+    });
 
 }
 
@@ -227,20 +253,16 @@ void custom_view::mousePressEvent(QMouseEvent* event)
 
 custom_view::~custom_view()
 {
-    qDebug() << "Waiting stop context" ;
-    auto lock = std::unique_lock<std::mutex>(stopMutex);
 
     qDebug() << "Stopping context ..." ;
-    if(context)
-        stopLive();
-    m_cv.wait(lock, [this](){return !bStreamingActive;} );
+    if(context){
+        qDebug() << "Waiting stop context" ;
+        auto lock = std::unique_lock<std::mutex>(stopMutex);
+        context->stopProcess();
+        m_cv.wait(lock, [this](){return !bStreamingActive;} );
+        qDebug() << "Context stopped, move to close view...";
+    }
 
-    qDebug() << "Context stopped, move to close view...";
-
-    if(threadpool)
-        threadpool.reset();
-    if(scheduler)
-        scheduler.reset();
-
+    qDebug() << "Destroing view ..." ;
 
 }

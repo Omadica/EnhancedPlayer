@@ -5,14 +5,16 @@ project(EnhancedPlayer VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-
-#cmake_policy(SET CMP0167 NEW)
+set(CMAKE_CONFIGURATION_TYPES "Debug")
+set(CMAKE_SYSTEM_VERSION 10.0.22621.0)
+# cmake_policy(SET CMP0167 NEW)
 
 set(ENV{PKG_CONFIG_PATH} "D:/Source/Repos/EXERCISE/MediaServices/cmake/pkgconfig")
 
-list(APPEND CMAKE_PREFIX_PATH "/home/algebrato/Qt/6.6.2/gcc_64/lib/cmake")
 if(WIN32)
     set(PKG_CONFIG_EXECUTABLE "C:/Strawberry/perl/bin/pkg-config.bat")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
 elseif(UNIX)
     set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g")
@@ -21,7 +23,7 @@ endif(WIN32)
 list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
 
 add_subdirectory(artifacts/sigslot)
-
+list (APPEND CMAKE_PREFIX_PATH "C:/Qt/6.7.2/msvc2019_64/lib/cmake")
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools Multimedia Charts)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Multimedia Charts)
 
@@ -117,7 +119,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    curl 
+    libcurl-d_imp
     curlpp
 )
 
