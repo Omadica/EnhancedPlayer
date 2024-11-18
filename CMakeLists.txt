@@ -7,7 +7,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_CONFIGURATION_TYPES "Debug")
 set(CMAKE_SYSTEM_VERSION 10.0.22621.0)
-# cmake_policy(SET CMP0167 NEW)
 
 set(ENV{PKG_CONFIG_PATH} "D:/Source/Repos/EXERCISE/MediaServices/cmake/pkgconfig")
 
@@ -16,8 +15,9 @@ if(WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
 elseif(UNIX)
-    set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config")
+    set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkgconf")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g")
+    set(ENV{LD_LIBRARY_PATH} "/usr/local/lib")
 endif(WIN32)
 
 list(APPEND CMAKE_PREFIX_PATH "D:/boost-1.84.0/stage/lib/cmake/Boost-1.84.0")
@@ -119,7 +119,8 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    libcurl-d_imp
+    #libcurl-d_imp
+    curl
     curlpp
 )
 

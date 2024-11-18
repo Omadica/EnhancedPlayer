@@ -91,7 +91,7 @@ void MainWindow::connetToRecorder()
             curlpp::Easy authRequest;
 
             QString Url = QString("http://") + ui->lineEdit->text() + QString(":8080/realms/mediamtx/protocol/openid-connect/token");
-            QString Data = QString("client_id=mediamtx&client_secret=l5czaQ0e8XiWfP94ViLDQDK1i0sp8AHY&username=") +
+            QString Data = QString("client_id=mediamtx&client_secret=0VEOXcpiagJqr09xh7MLpoF6lVDtTq8K&username=") +
                            ui->lineEdit_2->text() + QString("&password=") +
                            ui->lineEdit_3->text() +
                            QString("&grant_type=password");
