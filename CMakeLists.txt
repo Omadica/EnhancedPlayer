@@ -119,8 +119,8 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    #libcurl-d_imp
-    curl
+    libcurl-d_imp
+    #curl
     curlpp
 )
 
