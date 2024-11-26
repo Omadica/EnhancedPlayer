@@ -262,6 +262,162 @@
             <string>Video Streams</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_3">
+            <item row="3" column="1">
+             <layout class="QGridLayout" name="gridLayout_2">
+              <item row="4" column="1">
+               <widget class="custom_view" name="graphicsView4">
+                <property name="frameShape">
+                 <enum>QFrame::Shape::Box</enum>
+                </property>
+                <property name="dragMode">
+                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="custom_view" name="graphicsView1">
+                <property name="frameShape">
+                 <enum>QFrame::Shape::Box</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Shadow::Sunken</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>1</number>
+                </property>
+                <property name="midLineWidth">
+                 <number>0</number>
+                </property>
+                <property name="sceneRect">
+                 <rectf>
+                  <x>0.000000000000000</x>
+                  <y>0.000000000000000</y>
+                  <width>0.000000000000000</width>
+                  <height>0.000000000000000</height>
+                 </rectf>
+                </property>
+                <property name="dragMode">
+                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
+                </property>
+                <property name="resizeAnchor">
+                 <enum>QGraphicsView::ViewportAnchor::AnchorViewCenter</enum>
+                </property>
+                <property name="optimizationFlags">
+                 <set>QGraphicsView::OptimizationFlag::DontAdjustForAntialiasing|QGraphicsView::OptimizationFlag::DontSavePainterState|QGraphicsView::OptimizationFlag::IndirectPainting</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="custom_view" name="graphicsView2">
+                <property name="frameShape">
+                 <enum>QFrame::Shape::Box</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>1</number>
+                </property>
+                <property name="midLineWidth">
+                 <number>0</number>
+                </property>
+                <property name="dragMode">
+                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="custom_view" name="graphicsView3">
+                <property name="frameShape">
+                 <enum>QFrame::Shape::Box</enum>
+                </property>
+                <property name="dragMode">
+                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="wthreads">
+              <property name="text">
+               <string>Working Threads: </string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <item>
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="backForBtn">
+                <property name="autoFillBackground">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="QIcon::ThemeIcon::MediaSeekBackward"/>
+                </property>
+                <property name="flat">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="playBtn">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="stopBtn">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="QIcon::ThemeIcon::MediaPlaybackStop"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="fastForBtn">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="QIcon::ThemeIcon::MediaSeekForward"/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
             <item row="3" column="0">
              <widget class="MyQtTreeWidget" name="treeWidget_2">
               <property name="sizePolicy">
@@ -346,159 +502,20 @@
               </column>
              </widget>
             </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="wthreads">
-              <property name="text">
-               <string>Working Threads: </string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <layout class="QGridLayout" name="gridLayout_2">
-              <item row="4" column="0">
-               <widget class="custom_view" name="graphicsView3">
-                <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
-                </property>
-                <property name="dragMode">
-                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="custom_view" name="graphicsView2">
-                <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
-                </property>
-                <property name="lineWidth">
-                 <number>1</number>
-                </property>
-                <property name="midLineWidth">
-                 <number>0</number>
-                </property>
-                <property name="dragMode">
-                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="custom_view" name="graphicsView4">
-                <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
-                </property>
-                <property name="dragMode">
-                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="custom_view" name="graphicsView1">
-                <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Shadow::Sunken</enum>
-                </property>
-                <property name="lineWidth">
-                 <number>1</number>
-                </property>
-                <property name="midLineWidth">
-                 <number>0</number>
-                </property>
-                <property name="sceneRect">
-                 <rectf>
-                  <x>0.000000000000000</x>
-                  <y>0.000000000000000</y>
-                  <width>0.000000000000000</width>
-                  <height>0.000000000000000</height>
-                 </rectf>
-                </property>
-                <property name="dragMode">
-                 <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
-                </property>
-                <property name="resizeAnchor">
-                 <enum>QGraphicsView::ViewportAnchor::AnchorViewCenter</enum>
-                </property>
-                <property name="optimizationFlags">
-                 <set>QGraphicsView::OptimizationFlag::DontAdjustForAntialiasing|QGraphicsView::OptimizationFlag::DontSavePainterState|QGraphicsView::OptimizationFlag::IndirectPainting</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="0" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item row="4" column="1">
+             <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Orientation::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="backForBtn">
+               <widget class="QSlider" name="horizontalSlider">
                 <property name="autoFillBackground">
                  <bool>false</bool>
                 </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset theme="QIcon::ThemeIcon::MediaSeekBackward"/>
-                </property>
-                <property name="flat">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="playBtn">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="stopBtn">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset theme="QIcon::ThemeIcon::MediaPlaybackStop"/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="fastForBtn">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset theme="QIcon::ThemeIcon::MediaSeekForward"/>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_4">
                 <property name="orientation">
                  <enum>Qt::Orientation::Horizontal</enum>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
+                <property name="tickPosition">
+                 <enum>QSlider::TickPosition::TicksBothSides</enum>
                 </property>
-               </spacer>
+               </widget>
               </item>
              </layout>
             </item>
@@ -524,6 +541,50 @@
            <attribute name="title">
             <string>Decoding time</string>
            </attribute>
+           <widget class="QFrame" name="frame_3">
+            <property name="geometry">
+             <rect>
+              <x>360</x>
+              <y>270</y>
+              <width>481</width>
+              <height>80</height>
+             </rect>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <widget class="QSlider" name="horizontalSlider_3">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>30</y>
+               <width>481</width>
+               <height>31</height>
+              </rect>
+             </property>
+             <property name="singleStep">
+              <number>10</number>
+             </property>
+             <property name="value">
+              <number>10</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="invertedAppearance">
+              <bool>false</bool>
+             </property>
+             <property name="invertedControls">
+              <bool>false</bool>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TickPosition::TicksAbove</enum>
+             </property>
+            </widget>
+           </widget>
           </widget>
           <widget class="QWidget" name="tab_6">
            <property name="enabled">

@@ -29,10 +29,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->treeWidget_2->setColumnCount(1);
 
     ui->comboBox->setCurrentIndex(-1);
-    QIcon iconFF = QIcon::fromTheme("oxygen", QIcon("media-seek-forward.png"));
-    QIcon iconBF = QIcon::fromTheme("oxygen", QIcon("media-seek-backward.png"));
-    QIcon iconStop = QIcon::fromTheme("oxygen", QIcon("media-playback-stop.png"));
-    QIcon iconPlay = QIcon::fromTheme("oxygen", QIcon("media-playback-start.png"));
+    QIcon iconFF = QIcon::fromTheme("oxygen", QIcon("MediaControl/media-seek-forward.png"));
+    QIcon iconBF = QIcon::fromTheme("oxygen", QIcon("MediaControl/media-seek-backward.png"));
+    QIcon iconStop = QIcon::fromTheme("oxygen", QIcon("MediaControl/media-playback-stop.png"));
+    QIcon iconPlay = QIcon::fromTheme("oxygen", QIcon("MediaControl/media-playback-start.png"));
 
     ui->stopBtn->setIcon(iconStop);
     ui->playBtn->setIcon(iconPlay);
@@ -43,10 +43,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->comboBox, &QComboBox::currentIndexChanged, this, &MainWindow::setAuthMethod);
 
     // Start the application with no hooks.
-    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive);
-    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView2, &custom_view::stopLive);
-    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView3, &custom_view::stopLive);
-    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView4, &custom_view::stopLive);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView1, &custom_view::stopLive, Qt::DirectConnection);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView2, &custom_view::stopLive, Qt::DirectConnection);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView3, &custom_view::stopLive, Qt::DirectConnection);
+    connect(ui->stopBtn, &QPushButton::released, ui->graphicsView4, &custom_view::stopLive, Qt::DirectConnection);
+    connect(ui->graphicsView1, &custom_view::getRecordings, this, &MainWindow::setStreamline);
 
     chart = new QChart();
     series = new QScatterSeries();
@@ -119,14 +120,6 @@ void MainWindow::connetToRecorder()
         refToken = jsonObj["refresh_token"].toString();
         sesssionStat = jsonObj["session_state"].toString();
 
-        ui->tab_1->setEnabled(false);
-        ui->tabWidget_2->removeTab(0);
-        ui->tab_3->setEnabled(true);
-        ui->tab_4->setEnabled(true);
-        ui->tab_5->setEnabled(true);
-        ui->tab_6->setEnabled(true);
-        ui->tab_7->setEnabled(true);
-
         emit sendUrlAndToken(ui->lineEdit->text().toStdString(), token.toStdString());
 
     } else if (authMethod == "Internal") {
@@ -137,13 +130,6 @@ void MainWindow::connetToRecorder()
 
         intUser = ui->lineEdit_2->text().toStdString();
         intPass = ui->lineEdit_3->text().toStdString();
-        ui->tab_1->setEnabled(false);
-        ui->tabWidget_2->removeTab(0);
-        ui->tab_3->setEnabled(true);
-        ui->tab_4->setEnabled(true);
-        ui->tab_5->setEnabled(true);
-        ui->tab_6->setEnabled(true);
-        ui->tab_7->setEnabled(true);
 
         emit sendAuthInternal(authMethod, ui->lineEdit->text().toStdString(), intUser, intPass);
 
@@ -176,8 +162,8 @@ void MainWindow::showWorkingThreads()
 
 void MainWindow::getTopology()
 {
-    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("server-database.png"));
-    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("digikam.png"));
+    QIcon icon_DVR = QIcon::fromTheme("oxygen", QIcon("Devices/server-database.png"));
+    QIcon icon_cam = QIcon::fromTheme("oxygen", QIcon("Devices/digikam.png"));
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(ui->treeWidget_2);
     QTreeWidgetItem *treeItem2 = new QTreeWidgetItem(ui->treeWidget);
     treeItem->setIcon(0, icon_DVR);
@@ -194,14 +180,14 @@ void MainWindow::getTopology()
     try {
         if(authMethod == "Json Web Token")
             recorderReq.setOpt<curlpp::options::Url>(
-                QString(QString("http://")+
+                QString(QString("https://")+
                         ui->lineEdit->text()+
                         QString(":9997/v3/paths/list?jwt=")+token
                 ).toStdString()
             );
         else if (authMethod == "Internal")
             recorderReq.setOpt<curlpp::options::Url>(
-                QString(QString("http://")+
+                QString(QString("https://")+
                         QString(intUser.c_str())+
                         QString(":")+
                         QString(intPass.c_str())+
@@ -212,16 +198,26 @@ void MainWindow::getTopology()
             );
 
 
+        recorderReq.setOpt<curlpp::options::SslVerifyPeer>(false);
+        recorderReq.setOpt<curlpp::options::SslVerifyHost>(0);
         recorderReq.setOpt<curlpp::options::WriteStream>(&recorderResp);
 
         recorderReq.perform();
 
-    } catch (...) {
+    } catch (std::exception &ex) {
         QMessageBox msgBox;
-        msgBox.setText("GetTopology failed.");
+        msgBox.setText(ex.what());
         msgBox.exec();
         return;
     }
+
+    ui->tab_1->setEnabled(false);
+    ui->tabWidget_2->removeTab(0);
+    ui->tab_3->setEnabled(true);
+    ui->tab_4->setEnabled(true);
+    ui->tab_5->setEnabled(true);
+    ui->tab_6->setEnabled(true);
+    ui->tab_7->setEnabled(true);
 
 
     QByteArray ba(recorderResp.str().data(), recorderResp.str().size());
@@ -250,6 +246,32 @@ void MainWindow::getTopology()
     treeItem2->setExpanded(true);
 }
 
+void MainWindow::setStreamline(const std::string& path)
+{
+    std::ostringstream streamLines;
+    curlpp::Easy getRocordSegments;
+    getRocordSegments.setOpt<curlpp::options::Url>(
+        QString(QString("http://")+
+                ui->lineEdit->text()+
+                QString(":9996/list?path=") + QString(path.c_str()) + QString("&jwt=")+token
+                ).toStdString()
+        );
+
+    getRocordSegments.setOpt<curlpp::options::WriteStream>(&streamLines);
+    getRocordSegments.perform();
+    QByteArray ba(streamLines.str().data(), streamLines.str().size());
+    QJsonDocument json = QJsonDocument::fromJson(ba);
+    QJsonArray jsonObj = json.array();
+    for (const QJsonValue& c : jsonObj){
+        auto date = QDateTime::fromString(c["start"].toString(), Qt::ISODate);
+        qDebug() << c["duration"].toDouble();
+        qDebug() << "Start" << c["start"].toString() << " Stop:" << date.addSecs(c["duration"].toDouble());
+    }
+
+    /*
+     * Create a resizable timelince
+     */
+}
 
 MainWindow::~MainWindow()
 {

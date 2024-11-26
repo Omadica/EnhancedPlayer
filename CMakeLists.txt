@@ -15,7 +15,7 @@ if(WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
 elseif(UNIX)
-    set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkgconf")
+    set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g")
     set(ENV{LD_LIBRARY_PATH} "/usr/local/lib")
 endif(WIN32)
@@ -109,6 +109,13 @@ else()
     )
 endif()
 
+if(WIN32)
+    set(CURL_LIB libcurl-d_imp)
+elseif(UNIX)
+    set(CURL_LIB curl)
+endif()
+
+
 target_link_libraries(EnhancedPlayer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
@@ -119,8 +126,7 @@ target_link_libraries(EnhancedPlayer PRIVATE
     media_decoder
     media_wrap
     PkgConfig::LIBAV
-    libcurl-d_imp
-    #curl
+    ${CURL_LIB}
     curlpp
 )
 

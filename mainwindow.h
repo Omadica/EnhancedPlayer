@@ -41,6 +41,8 @@ protected slots:
     void setAuthMethod();
     void showWorkingThreads();
 
+    void setStreamline(const std::string& path);
+
 //public slots:
 //    void stopBtnConnection();
 

@@ -63,10 +63,12 @@ void custom_view::dropEvent(QDropEvent *event)
 {
     auto lock = std::unique_lock<std::mutex>(stopMutex);
     const QMimeData* mimeData =  event->mimeData();
-    if(mimeData->hasText())
+    if(mimeData->hasText()){
         qDebug() << "Mime has text: " << mimeData->text() ;
-    else
+        path = mimeData->text().toStdString();
+    } else {
         qDebug() << "Mime has NOT text" ;
+    }
 
     qDebug() << "Drop camera " << mimeData->text() << " on cell " << this->objectName();
 
@@ -178,7 +180,6 @@ void custom_view::playVideo(const QString path)
 
 }
 
-
 void custom_view::drawFrame(QImage img)
 {
 
@@ -191,29 +192,31 @@ void custom_view::drawFrame(QImage img)
 void custom_view::stopLive()
 {
     auto futureStop = scheduler->scheduleLambda("StopJob ", [&]() {
-    if(context){
+        if(context){
 
-        auto lock = std::unique_lock<std::mutex>(stopMutex);
-        context->stopProcess();
-        scene->clear();
+            auto lock = std::unique_lock<std::mutex>(stopMutex);
+            context->stopProcess();
+            scene->clear();
 
 
-        QImage image(QSize(4,3),QImage::Format_RGB32);
-        QPainter painter(&image);
-        painter.setBrush(QBrush(Qt::white));
-        painter.fillRect(QRectF(0,0,4,4),Qt::white);
-        painter.fillRect(QRectF(10,100,200,100),Qt::white);
+            QImage image(QSize(4,4),QImage::Format_RGB32);
+            QPainter painter(&image);
+            painter.setBrush(QBrush(Qt::white));
+            painter.fillRect(QRectF(0,0,4,4),Qt::white);
+            painter.fillRect(QRectF(10,100,200,100),Qt::white);
 
-        scene->addPixmap(QPixmap::fromImage(image));
+            scene->addPixmap(QPixmap::fromImage(image));
+            qDebug() << path << " stopped";
 
-        scene->setSceneRect(QRectF(0,0,0,0));
-        scene->update();
+            scene->setSceneRect(QRectF(0,0,0,0));
+            scene->update();
 
-        //m_cv.wait(lock, [&](){return bStreamingActive==true;});
-        fut.cancel();
+            //m_cv.wait(lock, [&](){return bStreamingActive==true;});
+            fut.cancel();
+            m_cv.notify_all();
+            qDebug() << path << " notified";
 
-        m_cv.notify_all();
-    }
+        }
     });
 
 }
@@ -238,9 +241,8 @@ void custom_view::mousePressEvent(QMouseEvent* event)
         setLineWidth(2);
         setFrameShadow(Shadow::Plain);
         emit focusIn(this);
+        emit getRecordings(path);
         isFocused = true;
-
-
     } else {
         setLineWidth(1);
         setFrameShadow(Shadow::Sunken);

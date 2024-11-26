@@ -40,17 +40,14 @@ public slots:
     void getAuthMethod(std::string auth, std::string urlR, std::string userR, std::string passwd);
     void stopLive();
 
-
-
 signals:
     void callVideo(const QString);
     void frameRGB(QImage img);
     void framePts(int64_t pts);
     void focusIn(custom_view *cv);
+    void getRecordings(const std::string&);
     void focusOut();
     void stopped();
-
-
 
 private:
     std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> console_sink;
@@ -70,6 +67,7 @@ private:
     std::string authMethod;
     std::string user;
     std::string passwd;
+    std::string path;
     QFuture<void> fut;
     QPromise<void> promise;
 
